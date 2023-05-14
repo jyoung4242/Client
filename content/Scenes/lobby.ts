@@ -1,34 +1,13 @@
-import { SceneState, Scene } from "../../src/components/SceneManager";
-import { UI, UIView } from "@peasy-lib/peasy-ui";
-import { Input } from "@peasy-lib/peasy-input";
+import { Scene } from "../../src/components/SceneManager";
 
 export class Lobby extends Scene {
-  template = `
-  <div class="gamestate" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; color: white;">Lobby</div>`;
-  model = {};
-  view: UIView | undefined = undefined;
+  public template = `<div class="scene" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; color: white;">
+  <div style="position:absolute; top:50%; left: 50%; transform: translate(-50%,-50%); font-size: xx-large;">Lobby</div>
+  
+  </div>`;
 
-  constructor() {
-    super("lobby");
-  }
-
-  public enter(_previous: Scene, ...params: any): void {
-    UI.initialize(1000 / 60);
-
-    setTimeout(() => {
-      this.view = UI.create(document.querySelector("#Viewport") as HTMLElement, this.model, this.template);
-    }, 400);
-  }
-
-  public async exit(_next: Scene, ...params: any) {
-    this.view?.destroy();
-  }
-
-  private wait(ms: number) {
-    return new Promise<void>(resolve =>
-      setTimeout(() => {
-        resolve();
-      }, ms)
-    );
+  public init() {
+    //do this on entry
+    console.log("Lobby");
   }
 }
