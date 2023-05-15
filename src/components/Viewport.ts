@@ -80,7 +80,7 @@ export class Viewport {
         }
 
     </style>
-    <div id="Viewport" style="--aspectRatio: \${viewport.aspectRatio}; --vpWidth: \${viewport.width}px" >
+    <div id="Viewport" style="--aspectRatio: \${viewport.aspectRatio}; --vpWidth: \${viewport.width}px;" >
         <div class="Transition \${transitionManager.stylestring}"></div>
     </div>`;
 

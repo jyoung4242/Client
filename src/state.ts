@@ -11,6 +11,9 @@ export class frameworkState {
     this.viewport = {
       width: 400,
       aspectRatio: "3/2",
+      borderThickness: "3px",
+      borderColor: "white",
+      borderRadius: "5px",
     };
     this.sceneManager = { currentScene: "Login", Scenes: [] };
 
