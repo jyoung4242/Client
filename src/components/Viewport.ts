@@ -7,8 +7,10 @@ export class Viewport {
   width: number;
   aspectRatio: string;
 
-  constructor(state: any, scenes: any, init: any, width?: number, aspectRatio?: string) {
+  constructor(state: any, scenes: any, width?: number, aspectRatio?: string) {
     this.state = state;
+    console.log(this.state);
+
     width ? (this.width = width) : (this.width = 400);
     aspectRatio ? (this.aspectRatio = aspectRatio) : (this.aspectRatio = "3/2");
     this.state.viewport.width = this.width;
@@ -84,12 +86,12 @@ export class Viewport {
         <div class="Transition \${transitionManager.stylestring}"></div>
     </div>`;
 
-    setTimeout(() => {
-      this.state.sceneManager.scenes = [...scenes];
-      this.state.sceneManager.currentScene = init.name;
-      this.sceneManager.register(...scenes);
-      this.sceneManager.set(init);
-    }, 25);
+    this.state.sceneManager.scenes = [...scenes];
+    this.sceneManager.register(...scenes);
   }
+
+  setScene = (sceneIndex: number) => {
+    this.state.sceneManager.currentScene = this.state.sceneManager.scenes[sceneIndex];
+    this.sceneManager.set(this.state.sceneManager.currentScene);
+  };
 }
-//"

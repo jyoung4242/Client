@@ -8,59 +8,29 @@ export enum ASSET_TYPE {
   image = "image",
   font = "font",
 }
-
-interface iImageType {
-  src: string;
-  name: string;
-}
-
-interface iAudioType {
-  src: string;
-  name: string;
-  family: string;
-}
-
-interface iFontType {
-  src: string;
-  name: string;
-}
-
-interface iAssetType {
-  type: iImageType | iAudioType | iFontType;
-}
-
-const ASSETPATH = "../../content/Assets/";
+const ASSETPATH = "./content/Assets/";
 
 export class AssetManager {
-  assets: Array<iAssetType> = [];
-  percentComplete: number = 0;
-  numberOfAssets: number = 0;
-  isInitialized: boolean = false;
-
-  public init(assetPath: string) {
-    Assets.initialize({ src: assetPath }); // Not necessary, but shortens future paths
-    this.isInitialized = true;
+  static init(assetPath?: string) {
+    let path;
+    assetPath ? (path = assetPath) : (path = ASSETPATH);
+    Assets.initialize({ src: path }); // Not necessary, but shortens future paths
   }
 
-  loadAssets(assets: Array<iAssetType>): Promise<void> | undefined {
-    if (!this.isInitialized) return undefined;
-    this.numberOfAssets += assets.length;
-    return new Promise((res, rej) => {
-      let loopIndex = 0;
-      for (const asset in assets) {
-        const ast = assets[asset];
-        Assets.load([ast.type.name]);
-        loopIndex++;
-        this.percentComplete = Math.floor(loopIndex / this.numberOfAssets);
-      }
-    });
+  static async loadAssets(assets: Array<string>) {
+    Assets.load([...assets]);
   }
 
-  checkLoad(): number {
-    return this.percentComplete;
+  static checkLoad(): { remaining: number; percentComplete: number } {
+    console.log("assetpool: loaded: ", Assets.loaded, " reqeusted: ", Assets.requested);
+
+    return {
+      remaining: Assets.pending,
+      percentComplete: Assets.loaded / Assets.requested,
+    };
   }
 
-  getAsset(assetName: string, type: ASSET_TYPE): HTMLAudioElement | HTMLImageElement | FontFace | -1 {
+  static getAsset(assetName: string, type: ASSET_TYPE): HTMLAudioElement | HTMLImageElement | FontFace | -1 {
     switch (type) {
       case ASSET_TYPE.audio:
         return Assets.audio(assetName);
@@ -71,5 +41,10 @@ export class AssetManager {
       default:
         return -1;
     }
+  }
+
+  async clearAssets() {
+    await Assets.clear();
+    return true;
   }
 }

@@ -1,10 +1,7 @@
 //import Components
 import { Viewport } from "./components/Viewport";
 import { UI } from "@peasy-lib/peasy-ui";
-import { frameworkState } from "./state";
-
-//import Assets
-import { AssetManager } from "./components/AssetPool";
+import { StateManagement } from "./components/StateManagement";
 
 //import Scenes
 import { Loading } from "../content/Scenes/loading";
@@ -12,9 +9,15 @@ import { Lobby } from "../content/Scenes/lobby";
 import { Login } from "../content/Scenes/login";
 import { Game } from "../content/Scenes/game";
 
-const datamodel = new frameworkState();
+export const datamodel = new StateManagement();
+console.log(datamodel);
+
 let scenes = [Loading, Login, Lobby, Game];
 
-const viewport = new Viewport(datamodel, scenes, scenes[0], 400, "3.255/1.75");
+const viewport = new Viewport(datamodel, scenes, 400, "3.255/1.75");
 const template = `${viewport.template}`;
-const mainView = UI.create(document.body, datamodel, template);
+console.log("waiting started");
+await UI.create(document.body, datamodel, template).attached;
+console.log("waiting done");
+
+viewport.setScene(0);
