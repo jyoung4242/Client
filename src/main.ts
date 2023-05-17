@@ -15,7 +15,7 @@ console.log(datamodel);
 let scenes = [Loading, Login, Lobby, Game];
 
 const viewport = Viewport;
-viewport.initialize(datamodel, scenes, 400, "3.125/1.9");
+viewport.initialize(datamodel, scenes, 400, "3.125/1.75");
 const template = `${viewport.template}`;
 console.log("waiting started");
 UI.create(document.body, datamodel, template).attached;
