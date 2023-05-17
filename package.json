@@ -16,9 +16,11 @@
     "@peasy-lib/peasy-assets": "^0.2.4",
     "@peasy-lib/peasy-input": "^0.2.0",
     "@peasy-lib/peasy-states": "^0.1.0",
-    "@peasy-lib/peasy-ui": "^0.9.45"
+    "@peasy-lib/peasy-ui": "^0.9.45",
+    "howler": "^2.2.3"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.7",
     "json": "^11.0.0",
     "typescript": "^5.0.4",
     "vite": "^4.3.5"

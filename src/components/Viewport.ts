@@ -47,6 +47,7 @@ export class Viewport {
           height: 100%;
           background-color: transparent;
           transition: background-color 0.25s;
+          pointer-events: none;
       }
       .hide_transition{
           background-color: white;
