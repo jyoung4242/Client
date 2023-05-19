@@ -10,15 +10,11 @@ import { Login } from "../content/Scenes/login";
 import { Game } from "../content/Scenes/game";
 
 export const datamodel = new StateManagement();
-console.log(datamodel);
 
 let scenes = [Loading, Login, Lobby, Game];
 
 const viewport = Viewport;
 viewport.initialize(datamodel, scenes, 400, "3.125/1.75");
 const template = `${viewport.template}`;
-console.log("waiting started");
-UI.create(document.body, datamodel, template).attached;
-console.log("waiting done");
-
-viewport.setScene(0);
+await UI.create(document.body, datamodel, template).attached;
+viewport.setScene(3);

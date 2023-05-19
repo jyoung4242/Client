@@ -1,48 +1,42 @@
+import { GameObject } from "./GameObject";
+
 export type ShakeDirection = "horizontal" | "vertical" | "random";
 
 export class Camera {
   //shaking props
-  isShaking: boolean = false;
-  shakeType: ShakeDirection = "horizontal";
-  shakeAngle = 0;
-  shakeFrequency = 0;
-  shakeDuration = 0;
-  shakeMagnitude = 0;
-  shakeElapsedTime = 0;
-  shakeIntervalTime = 0;
+  static xPos = 0;
+  static yPos = 0;
+  static isShaking: boolean = false;
+  static shakeType: ShakeDirection = "horizontal";
+  static shakeAngle = 0;
+  static shakeFrequency = 0;
+  static shakeDuration = 0;
+  static shakeMagnitude = 0;
+  static shakeElapsedTime = 0;
+  static shakeIntervalTime = 0;
+  static followedObject: GameObject | undefined;
+  static vpW: number;
+  static vpH: number;
 
-  static template = `
-  <style>
-    .camera{
-        position: var(--position, relative);
-          top:50%;
-          left:50%;
-          transform: translate(-50%,-50%);
-          width: 100%;
-          height: 100%
-    }
+  static initialize(w: number, h: number) {
+    Camera.vpW = w;
+    Camera.vpH = h;
+  }
 
-    .camera_flash{}
-  </style>
-  <div class="camera">
-    <div class="camera_flash"></div>
-    <div style="position:absolute; top:50%; left: 50%; transform: translate(-50%,-50%); font-size: xx-large;">Camera(Game)</div>
-  </div>`;
-  //TODO- camera flash binding -  \${===camera.flash}
-  shake(shakeType: ShakeDirection, magnitude: number, duration: number, interval: number) {
-    this.shakeElapsedTime = 0;
-    this.shakeIntervalTime = 0;
-    this.shakeType = shakeType;
-    this.shakeMagnitude = magnitude;
-    this.shakeDuration = duration;
-    this.shakeFrequency = interval;
-    this.isShaking = true;
+  static shake(shakeType: ShakeDirection, magnitude: number, duration: number, interval: number) {
+    Camera.shakeElapsedTime = 0;
+    Camera.shakeIntervalTime = 0;
+    Camera.shakeType = shakeType;
+    Camera.shakeMagnitude = magnitude;
+    Camera.shakeDuration = duration;
+    Camera.shakeFrequency = interval;
+    Camera.isShaking = true;
     //TODO - get instance of framework state into Camera
     //const event = new CustomEvent("cameraShakeComplete", { detail: { whoID: this.state.objects[0] } });
     //document.dispatchEvent(event);
   }
 
-  flash() {
+  static flash() {
     //TODO - get instance of framework state into Camera
     /* this.state.camera.flash = true;
     setTimeout(() => {
@@ -50,12 +44,11 @@ export class Camera {
     }, 10); */
   }
 
-  follow(who: any) {
-    //TODO - get instance of framework state into Camera
-    //this.state.camera.follow = who;
+  static follow(who: GameObject) {
+    Camera.followedObject = who;
   }
 
-  shakeUpdate(time: number): any {
+  static shakeUpdate(time: number): any {
     if (!this.isShaking) return { shakeX: 0, shakeY: 0 };
 
     this.shakeElapsedTime += time * 1000;
@@ -89,12 +82,14 @@ export class Camera {
     return { shakeX: this.shakeMagnitude * Math.cos(theta), shakeY: this.shakeMagnitude * Math.sin(theta) };
   }
 
-  update() {
-    //TODO - get instance of framework state into Camera
-    /* let targetpositionX = this.state.viewport.x / 6 - this.state.camera.follow.w / 2;
-    let targetpositionY = this.state.viewport.y / 6 - this.state.camera.follow.h / 2;
-    let { shakeX, shakeY } = this.shakeUpdate(0.1);
-    this.state.camera.x = targetpositionX - this.state.camera.follow.x + shakeX;
-    this.state.camera.y = targetpositionY - this.state.camera.follow.y + shakeY; */
+  static update() {
+    if (Camera.followedObject) {
+      let followPosition_viewportX = Camera.vpW / 2 - Camera.followedObject?.width / 2;
+      let followPosition_viewportY = Camera.vpH / 2 - Camera.followedObject?.height / 2;
+      let { shakeX, shakeY } = this.shakeUpdate(0.1);
+
+      Camera.xPos = followPosition_viewportX - Camera.followedObject?.xPos + shakeX;
+      Camera.yPos = followPosition_viewportY - Camera.followedObject?.yPos + shakeY;
+    }
   }
 }

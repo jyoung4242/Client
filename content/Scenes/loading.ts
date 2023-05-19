@@ -1,5 +1,6 @@
 import { Scene } from "../../src/components/SceneManager";
 import { Assets } from "@peasy-lib/peasy-assets";
+import { InputManager } from "../../src/components/InputManager";
 import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet";
 import { SFX } from "../../src/components/Sound API";
 
@@ -8,11 +9,11 @@ export class Loading extends Scene {
     earthSrc: "",
     earthAnimationBinding: "0px 0px",
     playSound: () => {
-      this.sfx.play("snort");
+      SFX.play("snort");
     },
+    inputlog: "",
   };
   animationHandler: any;
-  sfx: any;
 
   public template = `<div class="scene" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; color: white;">
     <div style=" width: 64px; height: 64px; position: absolute; top: 25px; left:25px; background-image: url(\${scenestate.earthSrc}); background-position: \${scenestate.earthAnimationBinding};" ></div>
@@ -20,6 +21,9 @@ export class Loading extends Scene {
       <label for="file">Downloading:</label>
       <progress id="file" value="32" max="100"> 32% </progress>
       <button \${click @=> scenestate.playSound}>Play Sound</button>
+      <div>
+        Input Log: \${scenestate.inputlog}
+      </div>
     </div>
   </div>`;
 
@@ -36,10 +40,91 @@ export class Loading extends Scene {
     this.animationHandler.startAnimation();
 
     //register sounds
-    this.sfx = SFX;
-    let rslt = this.sfx.register({ name: "snort", src: Assets.audio("snort").src });
-    console.log("sounds", rslt);
+    SFX.register({ name: "snort", src: Assets.audio("snort").src });
+
+    InputManager.register({
+      Keyboard: {
+        ArrowLeft: {
+          name: "leftA",
+          callback: this.leftArrow,
+          options: {
+            repeat: false,
+          },
+        },
+        ArrowRight: {
+          name: "rightA",
+          callback: this.rightArrow,
+          options: {
+            repeat: false,
+          },
+        },
+        ArrowUp: {
+          name: "upA",
+          callback: this.upArrow,
+          options: {
+            repeat: false,
+          },
+        },
+        ArrowDown: {
+          name: "downA",
+          callback: this.downArrow,
+          options: {
+            repeat: false,
+          },
+        },
+        release: {
+          callback: this.releasedKey,
+        },
+      },
+      Touch: {},
+      Mouse: {
+        ViewportScaling: [
+          { scalingFactor: 0.75, maxwidth: 675 },
+          { scalingFactor: 1.5, maxwidth: 1100, minwidth: 675 },
+          { scalingFactor: 2.5, minwidth: 1100 },
+        ],
+        LeftClick: {
+          name: "mouseClick",
+          callback: this.mouseClick,
+        },
+        RightClick: {
+          name: "rightClick",
+          callback: this.rightClick,
+        },
+      },
+      Gamepad: {},
+    });
+  }
+
+  public exit() {
+    //Spritesheet and AnimationSequence will do its own garbagecollection
+    SFX.clear();
+    Assets.clear();
+    InputManager.clearMapping();
   }
 
   earthAnimHandler = () => (this.scenestate.earthAnimationBinding = this.animationHandler.getFrameDetails());
+  leftArrow = () => {
+    this.scenestate.inputlog = "left arrow pressed";
+  };
+  rightArrow = () => {
+    this.scenestate.inputlog = "right arrow pressed";
+  };
+  upArrow = () => {
+    this.scenestate.inputlog = "up arrow pressed";
+  };
+  downArrow = () => {
+    this.scenestate.inputlog = "down arrow pressed";
+  };
+  mouseClick = (mousedata: any) => {
+    console.log(mousedata);
+
+    this.scenestate.inputlog = `scaled mouse click: x: ${mousedata.scaledX}, y: ${mousedata.scaledY}`;
+  };
+  rightClick = (mousedata: any) => {
+    this.scenestate.inputlog = `right click:  x: ${mousedata.scaledX}, y: ${mousedata.scaledY}`;
+  };
+  releasedKey = () => {
+    this.scenestate.inputlog = "";
+  };
 }

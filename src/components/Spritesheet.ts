@@ -22,7 +22,6 @@ export class Spritesheet {
         this.frames[`${frameIndex}`] = { xPos: -innerIndex * this.frameW, yPos: -index * this.frameH };
       }
     }
-    console.log(this.frames);
   }
 }
 
@@ -92,7 +91,6 @@ export class AnimationSequence {
       newArray.push(index);
     }
     //create object using said array
-
     return {
       default: newArray,
     };
@@ -109,8 +107,8 @@ export class AnimationSequence {
     if (this.isRunning == false) return;
     //check if at end of frame sequence
     let numSequenceFrames = (this.sequence[this.currentSequence] as Array<any>).length;
+    this.currentIndex += 1;
     if (this.currentIndex >= numSequenceFrames) this.currentIndex = 0;
-    else this.currentIndex += 1;
     //find next frame index
     this.currentFrame = this.sequence[this.currentSequence][this.currentIndex];
     this.callback();

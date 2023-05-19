@@ -6,16 +6,17 @@ export class SceneManager extends States {}
 export class Scene extends State {
   public view: UIView | undefined = undefined;
   public template: string = "";
+  public stateData: any;
 
   public enter(previous: State | null) {
-    setTimeout(() => {
-      this.view = UI.create(document.querySelector("#Viewport") as HTMLElement, this, this.template);
-      this.init();
-    }, 25);
+    this.view = UI.create(document.querySelector("#Viewport") as HTMLElement, this, this.template);
+    this.init();
   }
 
   public init() {}
+  public exit() {}
   public leave() {
+    this.exit();
     this.view?.destroy();
   }
 }

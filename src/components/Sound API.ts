@@ -12,9 +12,6 @@ class HowlManager {
   }
 
   static play(music: string) {
-    console.log("here", music);
-    console.log(HowlManager.sounds.get(music));
-
     HowlManager.sounds.get(music)?.play();
   }
 
