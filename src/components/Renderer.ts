@@ -2,6 +2,7 @@ import { Engine } from "@peasy-lib/peasy-engine";
 import { Camera } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
+import { Physics } from "@peasy-lib/peasy-physics";
 
 export type renderType = Array<MapLayer | GameObject>;
 export const RenderState = {
@@ -70,7 +71,7 @@ export class GameRenderer {
             <camera-layer>
                 <camera-flash></camera-flash>
                 <render-object id="\${obj.id}" data-type="\${obj.name}" class="\${obj.class}" style="transform: translate3d(\${obj.xPos}px, \${obj.yPos}px, 0px);z-index: \${obj.zIndex}; width: \${obj.width}px;height: \${obj.height}px;background-image:url('\${obj.src}');" \${obj<=*renderState.renderedObjects:id}>
-                <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');"></sprite-layer>
+                <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
                 </render-object>
             </camera-layer>
         </camera-static>
@@ -94,8 +95,11 @@ export class GameRenderer {
   //#region Objects
   static createObject(config: Array<GameObjectConfig | GameObject>) {
     config.forEach(cfg => {
-      if (cfg instanceof GameObject) GameRenderer.state.gameObjects.objects.push(cfg);
-      else GameRenderer.state.gameObjects.objects.push(GameObject.create(cfg));
+      let entity;
+      if (cfg instanceof GameObject) entity = cfg;
+      else entity = GameObject.create(cfg);
+      GameRenderer.state.gameObjects.objects.push(entity);
+      //Physics.addEntities([entity]);
     });
   }
 
@@ -105,10 +109,12 @@ export class GameRenderer {
 
   //#region Maps
 
-  static createMap(config: Array<MapConfig>) {
-    config.forEach(cfg => GameRenderer.state.maps.maps.push(GameMap.create(cfg)));
+  static createMap(config: Array<MapConfig | GameMap>) {
+    config.forEach(cfg => {
+      if (cfg instanceof GameMap) GameRenderer.state.maps.maps.push(cfg);
+      else GameRenderer.state.maps.maps.push(GameMap.create(cfg));
+    });
   }
-
   static destroyMap(id: string) {}
   static changeMap(name: string) {
     GameRenderer.state.maps.currentMap = name;
@@ -135,9 +141,9 @@ export class GameRenderer {
     }
   }
 
-  static renderLoop() {
+  static renderLoop(deltaTime: number, now: number) {
     GameRenderer.state.renderedObjects.length = 0;
-    GameRenderer.state.gameObjects.objects.forEach(obj => obj.update());
+    GameRenderer.state.gameObjects.objects.forEach(obj => obj.update(deltaTime));
 
     //build out rendered objects for dom rendering
     //MAPS FIRST
@@ -160,9 +166,10 @@ export class GameRenderer {
     }
     GameRenderer.state.camera.update();
   }
-  static physicsLoop() {
+  static physicsLoop(deltaTime: number, now: number) {
     //@ts-ignore
-    GameRenderer.state.gameObjects.objects.forEach(obj => obj.physicsUpdate());
+    GameRenderer.state.gameObjects.objects.forEach(obj => obj.physicsUpdate(deltaTime));
+    Physics.update(deltaTime, now);
   }
   //#endregion
 

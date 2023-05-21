@@ -1,15 +1,15 @@
 import { GameObject, GameObjectConfig } from "../../src/components/GameObject";
 import { Sprite } from "../../src/components/Sprite";
 
-export class Counter extends GameObject {
+export class Bookshelf extends GameObject {
   constructor(assets: any) {
     let config: GameObjectConfig = {
-      name: "Counter",
-      initX: 112,
-      initY: 96,
+      name: "Bookshelf",
+      initX: 48,
+      initY: 48,
       width: 32,
-      height: 32,
-      sprites: [new Sprite(assets.image("counter").src)],
+      height: 26,
+      sprites: [new Sprite(assets.image("bookshelf").src)],
     };
     super(config);
   }

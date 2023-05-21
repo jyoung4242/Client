@@ -84,7 +84,6 @@ export class Viewport {
 
   static setScene = (sceneIndex: number) => {
     Viewport.state.sceneManager.currentScene = Viewport.state.sceneManager.scenes[sceneIndex];
-    /* this.state.sceneManager.currentScene = this.state.sceneManager.scenes[sceneIndex];*/
     Viewport.state.sceneManager.set(this.state.sceneManager.currentScene, Viewport.state);
   };
 }

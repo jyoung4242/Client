@@ -1,17 +1,19 @@
 //needs to create the objectdata for the frame data
 export class Spritesheet {
-  source: string = "";
+  src: string = "";
+  animationBinding: string = "0px 0px";
   numFrames: number = 0;
-  frameW: number = 0;
-  frameH: number = 0;
+  width: number = 0;
+  height: number = 0;
   rows: number = 0;
   cols: number = 0;
   frames: any = {};
+  zIndex = 0;
   constructor(src: string, numframes: number, rows: number, cols: number, frameW: number, frameH: number) {
-    this.source = src;
+    this.src = src;
     this.numFrames = numframes;
-    this.frameH = frameH;
-    this.frameW = frameW;
+    this.height = frameH;
+    this.width = frameW;
     this.rows = rows;
     this.cols = cols;
   }
@@ -19,7 +21,7 @@ export class Spritesheet {
     for (let index = 0; index < this.cols; index++) {
       for (let innerIndex = 0; innerIndex < this.rows; innerIndex++) {
         const frameIndex = this.cols * (index + 1) - (this.rows - innerIndex);
-        this.frames[`${frameIndex}`] = { xPos: -innerIndex * this.frameW, yPos: -index * this.frameH };
+        this.frames[`${frameIndex}`] = { xPos: -innerIndex * this.width, yPos: -index * this.height };
       }
     }
   }
@@ -95,6 +97,10 @@ export class AnimationSequence {
       default: newArray,
     };
   };
+
+  updateFrame() {
+    this.tick();
+  }
 
   getFrameDetails(): string {
     //get frame details from spritesheet

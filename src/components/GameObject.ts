@@ -21,8 +21,13 @@ export type GameObjectConfig = {
 };
 
 export class GameObject {
-  xPos: number;
-  yPos: number;
+  xPos = 0;
+  yPos = 0;
+  position = { x: 0, y: 0 };
+  color = "red";
+  shapes = [{ radius: 16 }];
+  maxSpeed = 25;
+  forces = [];
   id: string;
   name: string;
   zIndex: number;
@@ -40,7 +45,7 @@ export class GameObject {
   constructor(config: GameObjectConfig) {
     this.name = config.name;
     this.id = uuidv4();
-    this.zIndex = 0;
+    this.zIndex = 2;
     this.height = config.height;
     this.width = config.width;
     this.spriteLayers = [...config.sprites];
@@ -53,6 +58,6 @@ export class GameObject {
     return new GameObject(config);
   }
 
-  update() {}
-  physicsUpdate() {}
+  update(deltaTime: number) {}
+  physicsUpdate(deltaTime: number) {}
 }
