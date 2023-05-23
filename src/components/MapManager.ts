@@ -1,11 +1,21 @@
 import { v4 as uuidv4 } from "uuid";
+
+export type collisionBody = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  actions?: any[];
+  color?: string;
+};
+
 export type MapConfig = {
   name: string;
   width: number;
   height: number;
   layers: string[];
-  walls: [];
-  triggers: [];
+  walls: collisionBody[];
+  triggers: collisionBody[];
 };
 
 export type MapLayer = {
@@ -18,6 +28,8 @@ export type MapLayer = {
   zIndex: number;
   xPos: number;
   yPos: number;
+  wallLayers: Array<collisionBody>;
+  triggerLayers: Array<collisionBody>;
 };
 
 export class GameMap {
@@ -26,17 +38,11 @@ export class GameMap {
   width: number;
   height: number;
   spriteLayers = [];
+  collisionLayers: Array<collisionBody> = [];
   layers: Array<MapLayer> = [];
-  walls: [];
-  triggers: [];
-  collisionBody = {
-    width: 0,
-    height: 0,
-    offsetX: 0,
-    offsetY: 0,
-    color: "red",
-    isVisible: false,
-  }; //not used in this object
+  walls: Array<collisionBody> = [];
+  triggers: Array<collisionBody> = [];
+
   constructor(config: MapConfig) {
     this.id = uuidv4();
     this.name = config.name;
@@ -45,17 +51,37 @@ export class GameMap {
     this.walls = [...config.walls];
     this.triggers = [...config.triggers];
     config.layers.forEach((lyr, index) => {
-      this.layers.push({
-        id: uuidv4(),
-        name: this.name,
-        class: "map",
-        width: this.width,
-        height: this.height,
-        src: lyr,
-        zIndex: index + 1,
-        xPos: 0,
-        yPos: 0,
-      });
+      const numLayers = config.layers.length;
+
+      if (index == numLayers - 1) {
+        this.layers.push({
+          id: uuidv4(),
+          name: this.name,
+          class: "map",
+          width: this.width,
+          height: this.height,
+          src: lyr,
+          zIndex: index + 1,
+          xPos: 0,
+          yPos: 0,
+          wallLayers: [...this.walls],
+          triggerLayers: [...this.triggers],
+        });
+      } else {
+        this.layers.push({
+          id: uuidv4(),
+          name: this.name,
+          class: "map",
+          width: this.width,
+          height: this.height,
+          src: lyr,
+          zIndex: index + 1,
+          xPos: 0,
+          yPos: 0,
+          wallLayers: [],
+          triggerLayers: [],
+        });
+      }
     });
   }
 

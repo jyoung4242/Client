@@ -37,8 +37,8 @@ export class Player extends GameObject {
       height: 32,
       sprites: [new Sprite(assets.image("shadow").src), heroSpritesheet],
       collisionBody: {
-        width: 20,
-        height: 8,
+        width: 14,
+        height: 6,
         offsetX: 8,
         offsetY: 24,
         color: "blue",
@@ -46,13 +46,6 @@ export class Player extends GameObject {
       },
     };
     super(config);
-    /* 
-    this.collisionBody.width = 20;
-    this.collisionBody.height = 8;
-    this.collisionBody.offsetX = 8;
-    this.collisionBody.offsetY = 24;
-    this.collisionBody.color = "blue";
-    this.collisionBody.isVisible = true; */
 
     this.isPlayable = true;
     this.animationHandler = new AnimationSequence(heroSpritesheet, this.animationUpdate, this.demosequence, 150);

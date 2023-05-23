@@ -111,10 +111,10 @@ export class CollisionManager {
 
   calcCollisionBox = (p: GameObject): { w: number; h: number; x: number; y: number } => {
     return {
-      w: p.collisionBody.width,
-      h: p.collisionBody.height,
-      x: p.xPos + p.collisionBody.offsetX,
-      y: p.yPos + p.collisionBody.offsetY,
+      w: p.collisionBodyWidth,
+      h: p.collisionBodyHeight,
+      x: p.xPos + p.collisionBodyOffsetX,
+      y: p.yPos + p.collisionBodyOffsetY,
     };
   };
 

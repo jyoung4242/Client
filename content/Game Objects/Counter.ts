@@ -11,20 +11,15 @@ export class Counter extends GameObject {
       height: 32,
       sprites: [new Sprite(assets.image("counter").src)],
       collisionBody: {
-        width: 26,
-        height: 26,
-        offsetX: 3,
-        offsetY: 10,
-        color: "red",
+        width: 30,
+        height: 24,
+        offsetX: 0,
+        offsetY: 6,
+        color: "cyan",
         isVisible: false,
       },
     };
     super(config);
-
-    this.collisionBody.width = 26;
-    this.collisionBody.height = 26;
-    this.collisionBody.offsetX = 3;
-    this.collisionBody.offsetY = 10;
   }
 
   update(): boolean {

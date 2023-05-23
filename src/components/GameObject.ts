@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Spritesheet } from "./Spritesheet";
 import { Sprite } from "./Sprite";
 import { direction } from "./CollisionManager";
+import { collisionBody } from "./MapManager";
 
 export type spriteLayer = Array<Sprite | Spritesheet>;
 
@@ -36,14 +37,15 @@ export class GameObject {
   height: number;
   class = "gameObject";
   spriteLayers: spriteLayer = [];
-  collisionBody = {
-    width: 0,
-    height: 0,
-    offsetX: 0,
-    offsetY: 0,
-    color: "red",
-    isVisible: false,
-  };
+  collisionLayers: Array<collisionBody> = [];
+  wallLayers = []; //not used in Gameobjects
+  triggerLayers = []; //not used in Gameobjects
+  collisionBodyWidth = 0;
+  collisionBodyHeight = 0;
+  collisionBodyOffsetX = 0;
+  collisionBodyOffsetY = 0;
+  collisionBodyColor = "green";
+  collisionBodyIsVisible = false;
 
   constructor(config: GameObjectConfig) {
     this.name = config.name;
@@ -54,7 +56,23 @@ export class GameObject {
     this.spriteLayers = [...config.sprites];
     this.xPos = config.initX;
     this.yPos = config.initY;
-    if (config.collisionBody) Object.assign(this.collisionBody, config.collisionBody);
+    if (config.collisionBody) {
+      this.collisionLayers.push({
+        w: config.collisionBody.width,
+        h: config.collisionBody.height,
+        x: config.collisionBody.offsetX,
+        y: config.collisionBody.offsetY,
+        color: config.collisionBody.color,
+      });
+    }
+    /*  if (config.collisionBody) {
+      this.collisionBodyWidth = config.collisionBody.width;
+      this.collisionBodyHeight = config.collisionBody.height;
+      this.collisionBodyOffsetX = config.collisionBody.offsetX;
+      this.collisionBodyOffsetY = config.collisionBody.offsetY;
+      this.collisionBodyColor = config.collisionBody.color;
+      this.collisionBodyIsVisible = config.collisionBody.isVisible;
+    } */
   }
 
   static create(config: GameObjectConfig) {
