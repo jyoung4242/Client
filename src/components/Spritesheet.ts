@@ -112,6 +112,7 @@ export class AnimationSequence {
   tick = () => {
     if (this.isRunning == false) return;
     //check if at end of frame sequence
+
     let numSequenceFrames = (this.sequence[this.currentSequence] as Array<any>).length;
     this.currentIndex += 1;
     if (this.currentIndex >= numSequenceFrames) this.currentIndex = 0;

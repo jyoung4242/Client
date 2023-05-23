@@ -2,7 +2,6 @@ import { Engine } from "@peasy-lib/peasy-engine";
 import { Camera } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
-import { Physics } from "@peasy-lib/peasy-physics";
 
 export type renderType = Array<MapLayer | GameObject>;
 export const RenderState = {
@@ -10,6 +9,10 @@ export const RenderState = {
   viewport: {
     width: 400,
     height: 3 / 2,
+  },
+  physics: {
+    canvas: undefined,
+    ctx: <CanvasRenderingContext2D | null>null,
   },
   gameObjects: {
     objects: [] as GameObject[],
@@ -22,6 +25,11 @@ export const RenderState = {
       return this.maps[mapIndex];
     },
     maps: [] as GameMap[],
+  },
+  overlays: {
+    isCollisionBodiesVisible: false,
+    isWallsVisible: false,
+    isTriggersVisible: false,
   },
   renderedObjects: <renderType>[],
 };
@@ -65,17 +73,41 @@ export class GameRenderer {
             display:block;
             background-repeat: no-repeat;
         }
+        .object-sprite{
+          position: absolute;
+        }
+        .border-box{
+          position: absolute;
+        }
+        .canvas{
+          width:100%;
+          height:100%;
+          z-index: 999999;
+        }
        
         </style>
         <camera-static style="transform: translate(\${renderState.camera.xPos}px,\${renderState.camera.yPos}px);">
             <camera-layer>
                 <camera-flash></camera-flash>
                 <render-object id="\${obj.id}" data-type="\${obj.name}" class="\${obj.class}" style="transform: translate3d(\${obj.xPos}px, \${obj.yPos}px, 0px);z-index: \${obj.zIndex}; width: \${obj.width}px;height: \${obj.height}px;background-image:url('\${obj.src}');" \${obj<=*renderState.renderedObjects:id}>
-                <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
+                  <render-inner style="position: relative; width: 100%; height: 100%, top:0px; left: 0px">
+                    <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
+                    <border-box class="border-box"  style="z-index: 9999;border: 1px solid white; top: \${obj.collisionBody.offsetY}px; left: 0px; width: 32px; height: 32px;"></border-box>
+                  </render-inner>
                 </render-object>
             </camera-layer>
         </camera-static>
+        <canvas \${==> renderState.physics.canvas}></canvas>
     `;
+
+  /*\${===obj.collisionBody.isVisible}
+     \${obj.collisionBody.color};
+     \${obj.collisionBody.offsetY}
+     \${obj.collisionBody.offsetX}
+    \${obj.collisionBody.width}
+\${obj.collisionBody.height}
+
+    */
 
   static initialize(
     state: typeof RenderState,
@@ -85,11 +117,16 @@ export class GameRenderer {
     GameRenderer.state = state;
     GameRenderer.state.viewport.width = viweportsize.width;
     GameRenderer.state.viewport.height = viweportsize.width * (1 / viweportsize.aspectratio);
-
     GameRenderer.objectRenderOrder = objectRenderOrder;
-    GameRenderer.physicsEngine = Engine.create(GameRenderer.physicsLoop);
-    GameRenderer.renderEngine = Engine.create(GameRenderer.renderLoop);
+    GameRenderer.physicsEngine = Engine.create({ callback: GameRenderer.physicsLoop, fps: 30, started: false });
+    GameRenderer.renderEngine = Engine.create({ callback: GameRenderer.renderLoop, fps: 60, started: false });
+
     RenderState.camera.initialize(RenderState.viewport.width, RenderState.viewport.height);
+    if (RenderState.physics.canvas) {
+      RenderState.physics.ctx = (RenderState.physics.canvas as HTMLCanvasElement).getContext("2d");
+      (RenderState.physics.canvas as HTMLCanvasElement).width = GameRenderer.state.viewport.width;
+      (RenderState.physics.canvas as HTMLCanvasElement).height = GameRenderer.state.viewport.height;
+    }
   }
 
   //#region Objects
@@ -99,7 +136,6 @@ export class GameRenderer {
       if (cfg instanceof GameObject) entity = cfg;
       else entity = GameObject.create(cfg);
       GameRenderer.state.gameObjects.objects.push(entity);
-      //Physics.addEntities([entity]);
     });
   }
 
@@ -147,29 +183,32 @@ export class GameRenderer {
 
     //build out rendered objects for dom rendering
     //MAPS FIRST
-
+    let numGameObjects = GameRenderer.state.gameObjects.objects.length;
     let numMapLayers = GameRenderer.state.maps.getCurrentMap.layers.length;
+
     for (let index = 0; index < numMapLayers; index++) {
       if (index >= GameRenderer.objectRenderOrder - 1) {
-        GameRenderer.state.maps.getCurrentMap.layers[index].zIndex = index + 3;
+        GameRenderer.state.maps.getCurrentMap.layers[index].zIndex = index + numGameObjects + 1;
       } else GameRenderer.state.maps.getCurrentMap.layers[index].zIndex = index + 1;
       GameRenderer.state.renderedObjects.push(GameRenderer.state.maps.getCurrentMap.layers[index]);
     }
     //OBJECTS LAST
-    let numGameObjects = GameRenderer.state.gameObjects.objects.length;
-    //console.log(numGameObjects);
-    for (let index = 0; index < numGameObjects; index++) {
-      //console.log("looping: ", index, GameRenderer.state.gameObjects.objects[index]);
+    //sort objects by ypos
 
-      GameRenderer.state.gameObjects.objects[index].zIndex = GameRenderer.objectRenderOrder + 1;
-      GameRenderer.state.renderedObjects.push(GameRenderer.state.gameObjects.objects[index]);
+    GameRenderer.state.gameObjects.objects.sort(function (a, b) {
+      return b.collisionBody.offsetY + b.yPos - (a.collisionBody.offsetY + a.yPos);
+    });
+
+    for (let index = numGameObjects; index > 0; index--) {
+      GameRenderer.state.gameObjects.objects[index - 1].zIndex = GameRenderer.objectRenderOrder + 1;
+      GameRenderer.state.renderedObjects.push(GameRenderer.state.gameObjects.objects[index - 1]);
     }
     GameRenderer.state.camera.update();
   }
   static physicsLoop(deltaTime: number, now: number) {
-    //@ts-ignore
-    GameRenderer.state.gameObjects.objects.forEach(obj => obj.physicsUpdate(deltaTime));
-    Physics.update(deltaTime, now);
+    GameRenderer.state.gameObjects.objects.forEach(obj =>
+      obj.physicsUpdate(deltaTime, GameRenderer.state.gameObjects.objects)
+    );
   }
   //#endregion
 
@@ -179,19 +218,10 @@ export class GameRenderer {
     const goIndex = RenderState.gameObjects.objects.findIndex(go => go.name == who);
     if (goIndex != -1) RenderState.camera.follow(RenderState.gameObjects.objects[goIndex]);
   }
+
+  static showWalls() {}
+  static showTriggers() {}
+  static showCollisionBodies() {}
+
   //#endregion
 }
-
-/*
-
-<map-layer id="map1" style="width:192px;height:192px;background-image: url('../../content/Assets/DemoLower.png');"></map-layer>
-                <object-layer id="object1" style="width:32px;height:32px; transform: translate(50px,125px); ">
-                    <sprite-layers>
-                        <sprite-layer style="background-image: url('../../content/Assets/shadow.png');"></sprite-layer>    
-                        <sprite-layer style="background-image: url('../../content/Assets/hero.png');"></sprite-layer>
-                    </sprite-layers>
-                </object-layer>
-                <map-layer id="map2" style="width:192px;height:192px;background-image: url('../../content/Assets/DemoUpper.png');"></map-layer>
-
-
-*/

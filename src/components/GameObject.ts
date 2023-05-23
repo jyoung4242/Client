@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { Spritesheet } from "./Spritesheet";
 import { Sprite } from "./Sprite";
-import { Game } from "../../content/Scenes/game";
+import { direction } from "./CollisionManager";
 
 export type spriteLayer = Array<Sprite | Spritesheet>;
 
@@ -17,17 +17,18 @@ export type GameObjectConfig = {
     height: number;
     offsetX: number;
     offsetY: number;
+    color: string;
+    isVisible: boolean;
   };
 };
 
 export class GameObject {
   xPos = 0;
   yPos = 0;
-  position = { x: 0, y: 0 };
-  color = "red";
-  shapes = [{ radius: 16 }];
-  maxSpeed = 25;
-  forces = [];
+  isPlayable: boolean = false;
+  isColliding: boolean = false;
+  collisionDirections: Array<direction> = [];
+  velocity = { x: 0, y: 0 };
   id: string;
   name: string;
   zIndex: number;
@@ -40,6 +41,8 @@ export class GameObject {
     height: 0,
     offsetX: 0,
     offsetY: 0,
+    color: "red",
+    isVisible: false,
   };
 
   constructor(config: GameObjectConfig) {
@@ -58,6 +61,10 @@ export class GameObject {
     return new GameObject(config);
   }
 
-  update(deltaTime: number) {}
-  physicsUpdate(deltaTime: number) {}
+  update(deltaTime: number): boolean {
+    return true;
+  }
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>): boolean {
+    return true;
+  }
 }

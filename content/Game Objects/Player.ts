@@ -3,11 +3,16 @@ import { Sprite } from "../../src/components/Sprite";
 import { InputManager } from "../../src/components/InputManager";
 import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet";
 import { State, States } from "@peasy-lib/peasy-states";
+import { CollisionManager, direction } from "../../src/components/CollisionManager";
+
+const MAX_WALKING_SPEED = 1.5;
 
 export class Player extends GameObject {
+  collisionbodyoffsetX = 0;
+  collisions = new CollisionManager();
   animationHandler;
   isMoving: boolean = false;
-  direction: "up" | "down" | "left" | "right" = "down";
+  direction: direction = "down";
   walkingstates = new WalkingStates();
   demosequence = {
     "walk-up": [8, 9, 10, 11],
@@ -31,12 +36,30 @@ export class Player extends GameObject {
       width: 32,
       height: 32,
       sprites: [new Sprite(assets.image("shadow").src), heroSpritesheet],
+      collisionBody: {
+        width: 20,
+        height: 8,
+        offsetX: 8,
+        offsetY: 24,
+        color: "blue",
+        isVisible: false,
+      },
     };
     super(config);
+    /* 
+    this.collisionBody.width = 20;
+    this.collisionBody.height = 8;
+    this.collisionBody.offsetX = 8;
+    this.collisionBody.offsetY = 24;
+    this.collisionBody.color = "blue";
+    this.collisionBody.isVisible = true; */
+
+    this.isPlayable = true;
     this.animationHandler = new AnimationSequence(heroSpritesheet, this.animationUpdate, this.demosequence, 150);
     this.animationHandler.changeSequence("idle-down");
     this.walkingstates.register(isWalking, isIdle);
     this.walkingstates.set(isIdle, performance.now(), "down", "idle-down", this);
+    console.log(this);
 
     InputManager.register({
       Keyboard: {
@@ -85,18 +108,45 @@ export class Player extends GameObject {
     });
   }
 
-  animationUpdate = () => {
-    this.spriteLayers[1].animationBinding = this.animationHandler.getFrameDetails();
-  };
-  update(deltaTime: number): void {}
-  physicsUpdate(deltaTime: number): void {}
+  animationUpdate = () => (this.spriteLayers[1].animationBinding = this.animationHandler.getFrameDetails());
+
+  update(deltaTime: number): boolean {
+    return true;
+  }
+
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>): boolean {
+    //check for object/object collisions
+    //filter playable characters out
+    let otherObjects = objects.filter(oo => this.id != oo.id);
+    this.collisionDirections = [];
+    otherObjects.forEach(o => {
+      let colResult = this.collisions.isObjectColliding(o, this);
+      this.isColliding = colResult.status;
+      //if (colResult.status) console.log(colResult);
+      this.collisionDirections.push(...colResult.collisionDirection);
+    });
+
+    if (this.isMoving) {
+      switch (this.direction) {
+        case "down":
+          if (!this.isDirectionInArray("down")) this.yPos += MAX_WALKING_SPEED;
+          break;
+        case "up":
+          if (!this.isDirectionInArray("up")) this.yPos -= MAX_WALKING_SPEED;
+          break;
+        case "left":
+          if (!this.isDirectionInArray("left")) this.xPos -= MAX_WALKING_SPEED;
+          break;
+        case "right":
+          if (!this.isDirectionInArray("right")) this.xPos += MAX_WALKING_SPEED;
+          break;
+      }
+    }
+    return true;
+  }
 
   leftArrow = () => {
     this.walkingstates.set(isWalking, performance.now(), "left", "walk-left", this);
-    /*  if (this.animationHandler.currentSequence != "walk-left") this.animationHandler.changeSequence("walk-left", 0);
-    this.direction = "left";
-    if (!this.isMoving) this.animationHandler.startAnimation();
-    this.isMoving = true; */
   };
   rightArrow = () => {
     this.walkingstates.set(isWalking, performance.now(), "right", "walk-right", this);
@@ -113,22 +163,22 @@ export class Player extends GameObject {
   interact = () => {
     console.log("space pressed");
   };
+
+  isDirectionInArray(dir: string): boolean {
+    return this.collisionDirections.find(d => d == dir) != undefined;
+  }
 }
 
 class WalkingStates extends States {}
-
 class isWalking extends State {
   enter(_previous: State | null, ...params: any): void | Promise<void> {
     let newDirection = params[0];
     let newSequence = params[1];
     let parentClass = params[2];
-
-    if (parentClass.direction != newDirection) {
-      parentClass.animationHandler.changeSequence(newSequence, 0);
-      parentClass.direction = newDirection;
-      if (!parentClass.isMoving) parentClass.animationHandler.startAnimation();
-      parentClass.isMoving = true;
-    }
+    if (parentClass.direction != newDirection) parentClass.direction = newDirection;
+    parentClass.animationHandler.changeSequence(newSequence, 0);
+    if (!parentClass.isMoving) parentClass.animationHandler.startAnimation();
+    parentClass.isMoving = true;
   }
   exit() {}
 }
@@ -137,20 +187,7 @@ class isIdle extends State {
     let parentClass = params[2];
     if (parentClass.isMoving) {
       parentClass.isMoving = false;
-      switch (parentClass.direction) {
-        case "down":
-          parentClass.animationHandler.changeSequence("idle-down", 0);
-          break;
-        case "left":
-          parentClass.animationHandler.changeSequence("idle-left", 0);
-          break;
-        case "up":
-          parentClass.animationHandler.changeSequence("idle-up", 0);
-          break;
-        case "right":
-          parentClass.animationHandler.changeSequence("idle-right", 0);
-          break;
-      }
+      parentClass.animationHandler.changeSequence(`idle-${parentClass.direction}`, 0);
       parentClass.animationHandler.updateFrame();
       parentClass.animationHandler.pauseAnimation();
     }

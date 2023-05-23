@@ -29,6 +29,14 @@ export class GameMap {
   layers: Array<MapLayer> = [];
   walls: [];
   triggers: [];
+  collisionBody = {
+    width: 0,
+    height: 0,
+    offsetX: 0,
+    offsetY: 0,
+    color: "red",
+    isVisible: false,
+  }; //not used in this object
   constructor(config: MapConfig) {
     this.id = uuidv4();
     this.name = config.name;
