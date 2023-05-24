@@ -19,7 +19,6 @@ export type GameObjectConfig = {
     offsetX: number;
     offsetY: number;
     color: string;
-    isVisible: boolean;
   };
 };
 
@@ -40,12 +39,7 @@ export class GameObject {
   collisionLayers: Array<collisionBody> = [];
   wallLayers = []; //not used in Gameobjects
   triggerLayers = []; //not used in Gameobjects
-  collisionBodyWidth = 0;
-  collisionBodyHeight = 0;
-  collisionBodyOffsetX = 0;
-  collisionBodyOffsetY = 0;
-  collisionBodyColor = "green";
-  collisionBodyIsVisible = false;
+  isCollisionLayersVisible = false;
 
   constructor(config: GameObjectConfig) {
     this.name = config.name;
@@ -65,14 +59,6 @@ export class GameObject {
         color: config.collisionBody.color,
       });
     }
-    /*  if (config.collisionBody) {
-      this.collisionBodyWidth = config.collisionBody.width;
-      this.collisionBodyHeight = config.collisionBody.height;
-      this.collisionBodyOffsetX = config.collisionBody.offsetX;
-      this.collisionBodyOffsetY = config.collisionBody.offsetY;
-      this.collisionBodyColor = config.collisionBody.color;
-      this.collisionBodyIsVisible = config.collisionBody.isVisible;
-    } */
   }
 
   static create(config: GameObjectConfig) {

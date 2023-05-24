@@ -92,9 +92,11 @@ export class GameRenderer {
                 <render-object id="\${obj.id}" data-type="\${obj.name}" class="\${obj.class}" style="transform: translate3d(\${obj.xPos}px, \${obj.yPos}px, 0px);z-index: \${obj.zIndex}; width: \${obj.width}px;height: \${obj.height}px;background-image:url('\${obj.src}');" \${obj<=*renderState.renderedObjects:id}>
                   <render-inner style="position: relative; width: 100%; height: 100%, top:0px; left: 0px">
                     <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
-                    <border-box class="border-box"  \${cl<=*obj.collisionLayers}  style="z-index: 9999;border: 1px solid \${cl.color}; top: \${cl.y}px; left:\${cl.x}px; width: \${cl.w}px; height: \${cl.h}px;"></border-box>
-                    <trigger-box class="border-box" \${tl<=*obj.triggerLayers} style="z-index: 9999;border: 1px solid \${tl.color}; top: \${tl.y}px; left:\${tl.x}px; width: \${tl.w}px; height: \${tl.h}px;"></trigger-box>
-                    <wall-box class="border-box" \${wl<=*obj.wallLayers} style="z-index: 9999;border: 1px solid \${wl.color}; top: \${wl.y}px; left:\${wl.x}px; width: \${wl.w}px; height: \${wl.h}px;"></wall-box>
+                    <collision-layers \${===obj.isCollisionLayersVisible}>
+                      <border-box class="border-box"  \${cl<=*obj.collisionLayers}  style="z-index: 9999;border: 1px solid \${cl.color}; top: \${cl.y}px; left:\${cl.x}px; width: \${cl.w}px; height: \${cl.h}px;"></border-box>
+                      <trigger-box class="border-box"  \${tl<=*obj.triggerLayers} style="z-index: 9999;border: 1px solid \${tl.color}; top: \${tl.y}px; left:\${tl.x}px; width: \${tl.w}px; height: \${tl.h}px;"></trigger-box>
+                      <wall-box class="border-box"  \${wl<=*obj.wallLayers} style="z-index: 9999;border: 1px solid \${wl.color}; top: \${wl.y}px; left:\${wl.x}px; width: \${wl.w}px; height: \${wl.h}px;"></wall-box>
+                    </collision-layers>
                     </render-inner>
                 </render-object>
             </camera-layer>
@@ -103,7 +105,8 @@ export class GameRenderer {
     `;
 
   /*
-    \${===obj.collisionBodyIsVisible}
+   
+  \${===cl.isVisible}\${===tl.isVisible}\${===wl.isVisible}
     */
 
   static initialize(
@@ -193,7 +196,7 @@ export class GameRenderer {
     //sort objects by ypos
 
     GameRenderer.state.gameObjects.objects.sort(function (a, b) {
-      return b.collisionBodyOffsetY + b.yPos - (a.collisionBodyOffsetY + a.yPos);
+      return b.collisionLayers[0].y + b.yPos - (a.collisionLayers[0].y + a.yPos);
     });
 
     for (let index = numGameObjects; index > 0; index--) {
@@ -216,10 +219,9 @@ export class GameRenderer {
     if (goIndex != -1) RenderState.camera.follow(RenderState.gameObjects.objects[goIndex]);
   }
 
-  static showWalls(visible: boolean) {}
-  static showTriggers(visible: boolean) {}
   static showCollisionBodies(visible: boolean) {
-    RenderState.gameObjects.objects.forEach(o => (o.collisionBodyIsVisible = visible));
+    RenderState.gameObjects.objects.forEach(o => (o.isCollisionLayersVisible = visible));
+    RenderState.maps.maps.forEach(m => m.layers.forEach(ml => (ml.isCollisionLayersVisible = visible)));
   }
 
   //#endregion

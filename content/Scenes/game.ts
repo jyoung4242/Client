@@ -34,7 +34,7 @@ export class Game extends Scene {
     this.renderer.cameraFollow("Player");
 
     //START your engines!
-    this.renderer.showCollisionBodies(true);
+    //this.renderer.showCollisionBodies(true);
     this.renderer.engineStart();
   }
   public exit() {}

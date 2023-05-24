@@ -79,7 +79,22 @@ export class Kitchen extends GameMap {
           color: "red",
         },
       ],
-      triggers: [],
+      triggers: [
+        {
+          x: 112,
+          y: 48,
+          w: 14,
+          h: 5,
+          color: "yellow",
+        },
+        {
+          x: 79,
+          y: 172,
+          w: 16,
+          h: 5,
+          color: "yellow",
+        },
+      ],
     };
     super(config);
   }

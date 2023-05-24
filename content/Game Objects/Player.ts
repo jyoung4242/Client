@@ -42,7 +42,6 @@ export class Player extends GameObject {
         offsetX: 8,
         offsetY: 24,
         color: "blue",
-        isVisible: false,
       },
     };
     super(config);
@@ -52,7 +51,6 @@ export class Player extends GameObject {
     this.animationHandler.changeSequence("idle-down");
     this.walkingstates.register(isWalking, isIdle);
     this.walkingstates.set(isIdle, performance.now(), "down", "idle-down", this);
-    console.log(this);
 
     InputManager.register({
       Keyboard: {
@@ -113,10 +111,14 @@ export class Player extends GameObject {
     let otherObjects = objects.filter(oo => this.id != oo.id);
     this.collisionDirections = [];
     otherObjects.forEach(o => {
-      let colResult = this.collisions.isObjectColliding(o, this);
-      this.isColliding = colResult.status;
-      //if (colResult.status) console.log(colResult);
-      this.collisionDirections.push(...colResult.collisionDirection);
+      o.collisionLayers.forEach(cl => {
+        let colResult = this.collisions.isObjectColliding({ w: cl.w, h: cl.h, x: cl.x + o.xPos, y: cl.y + o.yPos }, this);
+        //console.log(colResult);
+
+        this.isColliding = colResult.status;
+        //if (colResult.status) console.log(colResult);
+        this.collisionDirections.push(...colResult.collisionDirection);
+      });
     });
 
     if (this.isMoving) {

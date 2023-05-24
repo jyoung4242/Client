@@ -1,5 +1,6 @@
 import { Game } from "../../content/Scenes/game";
 import { GameObject } from "./GameObject";
+import { collisionBody } from "./MapManager";
 
 export type direction = "down" | "left" | "up" | "right";
 
@@ -17,11 +18,12 @@ export class CollisionManager {
   constructor() {}
 
   isObjectColliding(a: any, b: any): collisionResult {
-    let A = this.calcCollisionBox(a);
+    //let A = this.calcCollisionBox(a);
     let B = this.calcCollisionBox(b);
+
     let dirs: Array<direction> = [];
 
-    if (A.x < B.x + B.w && A.x + A.w > B.x && A.y < B.y + B.h && A.y + A.h > B.y) {
+    if (a.x < B.x + B.w && a.x + a.w > B.x && a.y < B.y + B.h && a.y + a.h > B.y) {
       let directionCheck: Array<direction> = ["up", "down", "left", "right"];
       directionCheck.forEach(dir => {
         switch (dir) {
@@ -111,52 +113,52 @@ export class CollisionManager {
 
   calcCollisionBox = (p: GameObject): { w: number; h: number; x: number; y: number } => {
     return {
-      w: p.collisionBodyWidth,
-      h: p.collisionBodyHeight,
-      x: p.xPos + p.collisionBodyOffsetX,
-      y: p.yPos + p.collisionBodyOffsetY,
+      w: p.collisionLayers[0].w,
+      h: p.collisionLayers[0].h,
+      x: p.xPos + p.collisionLayers[0].x,
+      y: p.yPos + p.collisionLayers[0].y,
     };
   };
 
-  isDownFree = (wall: GameObject, player: GameObject): boolean => {
-    let a = this.calcCollisionBox(wall);
+  isDownFree = (wall: collisionBody, player: GameObject): boolean => {
+    //let a = this.calcCollisionBox(wall);
     let b = this.calcCollisionBox(player);
-    if (a.x < b.x + b.w && a.x + a.w >= b.x) {
-      const distance = a.y - (b.y + b.h);
-      //console.log("down check: ", distance);
-      if (distance < -2 && distance >= 0) return false;
+
+    if (wall.x < b.x + b.w && wall.x + wall.w >= b.x) {
+      const distance = wall.y - (b.y + b.h);
+      if (distance > -2 && distance <= 0) return false;
     }
 
     return true;
   };
-  isUpFree = (wall: GameObject, player: GameObject): boolean => {
-    let a = this.calcCollisionBox(wall);
+  isUpFree = (wall: collisionBody, player: GameObject): boolean => {
+    //let a = this.calcCollisionBox(wall);
     let b = this.calcCollisionBox(player);
-    if (a.x < b.x + b.w && a.x + a.w >= b.x) {
-      const distance = a.y + a.h - b.y;
+    if (wall.x < b.x + b.w && wall.x + wall.w >= b.x) {
+      const distance = wall.y + wall.h - b.y;
       //console.log("up check: ", distance);
       if (distance < 3 && distance >= 0) return false;
     }
 
     return true;
   };
-  isLeftFree = (wall: GameObject, player: GameObject): boolean => {
-    let a = this.calcCollisionBox(wall);
+  isLeftFree = (wall: collisionBody, player: GameObject): boolean => {
+    //let a = this.calcCollisionBox(wall);
     let b = this.calcCollisionBox(player);
-    if (a.y < b.y + b.h && a.y + a.h >= b.y) {
-      const distance = a.x + a.w - b.x;
+    if (wall.y < b.y + b.h && wall.y + wall.h >= b.y) {
+      const distance = wall.x + wall.w - b.x;
       //console.log("left check: ", distance);
-      if (distance > -2 && distance <= 0) return false;
+      if (distance < 2 && distance >= 0) return false;
     }
 
     return true;
   };
-  isRightFree = (wall: GameObject, player: GameObject): boolean => {
-    let a = this.calcCollisionBox(wall);
+  isRightFree = (wall: collisionBody, player: GameObject): boolean => {
+    //let a = this.calcCollisionBox(wall);
     let b = this.calcCollisionBox(player);
 
-    if (a.y < b.y + b.h && a.y + a.h >= b.y) {
-      const distance = a.x - (b.x + b.w);
+    if (wall.y < b.y + b.h && wall.y + wall.h >= b.y) {
+      const distance = wall.x - (b.x + b.w);
       //console.log("right check: ", distance);
       if (distance > -2 && distance <= 0) return false;
     }

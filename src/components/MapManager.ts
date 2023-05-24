@@ -30,6 +30,7 @@ export type MapLayer = {
   yPos: number;
   wallLayers: Array<collisionBody>;
   triggerLayers: Array<collisionBody>;
+  isCollisionLayersVisible: boolean;
 };
 
 export class GameMap {
@@ -66,6 +67,7 @@ export class GameMap {
           yPos: 0,
           wallLayers: [...this.walls],
           triggerLayers: [...this.triggers],
+          isCollisionLayersVisible: false,
         });
       } else {
         this.layers.push({
@@ -80,6 +82,7 @@ export class GameMap {
           yPos: 0,
           wallLayers: [],
           triggerLayers: [],
+          isCollisionLayersVisible: false,
         });
       }
     });
