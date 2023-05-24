@@ -2,10 +2,13 @@ import { Engine } from "@peasy-lib/peasy-engine";
 import { Camera } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
+import { EventManager } from "./EventManager";
+import { WalkEvent } from "../../content/Events/walk";
 
 export type renderType = Array<MapLayer | GameObject>;
 export const RenderState = {
   camera: Camera,
+  events: EventManager,
   viewport: {
     width: 400,
     height: 3 / 2,
@@ -101,32 +104,31 @@ export class GameRenderer {
                 </render-object>
             </camera-layer>
         </camera-static>
-        <canvas \${==> renderState.physics.canvas}></canvas>
     `;
-
-  /*
-   
-  \${===cl.isVisible}\${===tl.isVisible}\${===wl.isVisible}
-    */
 
   static initialize(
     state: typeof RenderState,
     objectRenderOrder: number,
     viweportsize: { width: number; aspectratio: number }
   ) {
+    /*********************
+     * state Initialization
+     *********************  */
     GameRenderer.state = state;
     GameRenderer.state.viewport.width = viweportsize.width;
     GameRenderer.state.viewport.height = viweportsize.width * (1 / viweportsize.aspectratio);
     GameRenderer.objectRenderOrder = objectRenderOrder;
+
+    /*********************
+     * Engine Initialization
+     *********************  */
     GameRenderer.physicsEngine = Engine.create({ callback: GameRenderer.physicsLoop, fps: 30, started: false });
     GameRenderer.renderEngine = Engine.create({ callback: GameRenderer.renderLoop, fps: 60, started: false });
 
+    /*********************
+     * Camera Initialization
+     *********************  */
     RenderState.camera.initialize(RenderState.viewport.width, RenderState.viewport.height);
-    if (RenderState.physics.canvas) {
-      RenderState.physics.ctx = (RenderState.physics.canvas as HTMLCanvasElement).getContext("2d");
-      (RenderState.physics.canvas as HTMLCanvasElement).width = GameRenderer.state.viewport.width;
-      (RenderState.physics.canvas as HTMLCanvasElement).height = GameRenderer.state.viewport.height;
-    }
   }
 
   //#region Objects
@@ -179,7 +181,9 @@ export class GameRenderer {
 
   static renderLoop(deltaTime: number, now: number) {
     GameRenderer.state.renderedObjects.length = 0;
-    GameRenderer.state.gameObjects.objects.forEach(obj => obj.update(deltaTime));
+    GameRenderer.state.gameObjects.objects.forEach(obj =>
+      obj.update(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
+    );
 
     //build out rendered objects for dom rendering
     //MAPS FIRST
@@ -207,7 +211,7 @@ export class GameRenderer {
   }
   static physicsLoop(deltaTime: number, now: number) {
     GameRenderer.state.gameObjects.objects.forEach(obj =>
-      obj.physicsUpdate(deltaTime, GameRenderer.state.gameObjects.objects)
+      obj.physicsUpdate(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
     );
   }
   //#endregion

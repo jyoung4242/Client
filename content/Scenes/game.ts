@@ -5,6 +5,7 @@ import { Kitchen } from "../Maps/kitchen";
 import { Player } from "../Game Objects/Player";
 import { Counter } from "../Game Objects/Counter";
 import { Bookshelf } from "../Game Objects/Bookshelf";
+import { NPC1 } from "../Game Objects/npc1";
 
 export class Game extends Scene {
   renderer = GameRenderer;
@@ -17,7 +18,7 @@ export class Game extends Scene {
   public async init() {
     //Loading Assets
     Assets.initialize({ src: "./content/Assets/" });
-    await Assets.load(["lower.png", "DemoUpper.png", "hero.png", "shadow.png", "counter.png", "bookshelf.png"]);
+    await Assets.load(["lower.png", "DemoUpper.png", "hero.png", "shadow.png", "counter.png", "bookshelf.png", "npc2.png"]);
 
     //Initialize Renderer
     this.renderer.initialize(this.renderState, 2, { width: 400, aspectratio: 3 / 2 });
@@ -27,7 +28,7 @@ export class Game extends Scene {
     this.renderer.changeMap("kitchen");
 
     //Load Objects
-    let objConfig = [new Player(Assets), new Counter(Assets), new Bookshelf(Assets)];
+    let objConfig = [new Player(Assets), new Counter(Assets), new Bookshelf(Assets), new NPC1(Assets)];
     this.renderer.createObject(objConfig);
 
     //Set Camera

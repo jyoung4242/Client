@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Spritesheet } from "./Spritesheet";
 import { Sprite } from "./Sprite";
 import { direction } from "./CollisionManager";
-import { collisionBody } from "./MapManager";
+import { GameMap, collisionBody } from "./MapManager";
 
 export type spriteLayer = Array<Sprite | Spritesheet>;
 
@@ -65,10 +65,10 @@ export class GameObject {
     return new GameObject(config);
   }
 
-  update(deltaTime: number): boolean {
+  update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     return true;
   }
-  physicsUpdate(deltaTime: number, objects: Array<GameObject>): boolean {
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     return true;
   }
 }

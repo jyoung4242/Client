@@ -4,6 +4,7 @@ import { InputManager } from "../../src/components/InputManager";
 import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet";
 import { State, States } from "@peasy-lib/peasy-states";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
+import { GameMap, MapLayer, collisionBody } from "../../src/components/MapManager";
 
 const MAX_WALKING_SPEED = 1.5;
 
@@ -101,23 +102,45 @@ export class Player extends GameObject {
 
   animationUpdate = () => (this.spriteLayers[1].animationBinding = this.animationHandler.getFrameDetails());
 
-  update(deltaTime: number): boolean {
+  update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     return true;
   }
 
-  physicsUpdate(deltaTime: number, objects: Array<GameObject>): boolean {
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     //check for object/object collisions
     //filter playable characters out
     let otherObjects = objects.filter(oo => this.id != oo.id);
     this.collisionDirections = [];
+
+    /***********************************
+     *  object/object collision check
+     * ******************************* */
     otherObjects.forEach(o => {
       o.collisionLayers.forEach(cl => {
         let colResult = this.collisions.isObjectColliding({ w: cl.w, h: cl.h, x: cl.x + o.xPos, y: cl.y + o.yPos }, this);
-        //console.log(colResult);
-
         this.isColliding = colResult.status;
-        //if (colResult.status) console.log(colResult);
         this.collisionDirections.push(...colResult.collisionDirection);
+      });
+    });
+
+    /***********************************
+     * wall/object collision check
+     * ******************************* */
+    currentMap.layers.forEach(ml => {
+      ml.wallLayers.forEach(wl => {
+        let colResult = this.collisions.isObjectColliding({ w: wl.w, h: wl.h, x: wl.x + ml.xPos, y: wl.y + ml.yPos }, this);
+        this.isColliding = colResult.status;
+        this.collisionDirections.push(...colResult.collisionDirection);
+      });
+    });
+
+    /***********************************
+     * trigger/object collision check
+     * ******************************* */
+    currentMap.layers.forEach(ml => {
+      ml.triggerLayers.forEach(tl => {
+        let colResult = this.collisions.isObjectColliding({ w: tl.w, h: tl.h, x: tl.x + ml.xPos, y: tl.y + ml.yPos }, this);
+        if (colResult.status == true) window.alert("Trigger Space Hit");
       });
     });
 
