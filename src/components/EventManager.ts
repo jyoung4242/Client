@@ -1,8 +1,10 @@
 import { Engine } from "@peasy-lib/peasy-engine";
+import { GameObject } from "./GameObject";
 //library code
 export type EventConfigType = "LOOP" | "CUTSCENE";
 
 export class EventManager {
+  who: GameObject;
   isCutscenePlaying: boolean = false;
   isCallBusy: boolean = false;
   eventEngine: Engine | undefined;
@@ -11,10 +13,10 @@ export class EventManager {
   loopIndex: number = 0;
   cutscenePromise: ((value: void | PromiseLike<void>) => void) | undefined;
 
-  constructor(setmode: EventConfigType) {
+  constructor(who: GameObject, setmode: EventConfigType) {
     this.mode = setmode;
     this.loopIndex = 0;
-
+    this.who = who;
     this.eventEngine = Engine.create({
       callback: this.behaviorLoop,
       ms: 200,
@@ -52,7 +54,9 @@ export class EventManager {
     if (this.isCutscenePlaying) return;
     if (this.sequence.length == 0) return;
     this.isCallBusy = true;
-    await this.sequence[this.loopIndex].init();
+    if (this.who.name == "player") console.log("player event");
+
+    await this.sequence[this.loopIndex].init(this.who);
     this.isCallBusy = false;
     this.loopIndex++;
 
@@ -71,11 +75,12 @@ export class EventManager {
 
 export class GameEvent {
   public name: string;
+  who: GameObject | undefined;
   constructor(eventName: string) {
     this.name = eventName;
   }
 
-  init(): Promise<void> {
+  init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
       //do eventcode here
       resolve();

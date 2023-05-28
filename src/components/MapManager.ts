@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
+import { EventManager } from "./EventManager";
+import { GameObject } from "./GameObject";
 
 export type collisionBody = {
   x: number;
@@ -51,6 +53,7 @@ export class GameMap {
     this.height = config.height;
     this.walls = [...config.walls];
     this.triggers = [...config.triggers];
+
     config.layers.forEach((lyr, index) => {
       const numLayers = config.layers.length;
 
@@ -94,4 +97,6 @@ export class GameMap {
   static create(config: MapConfig) {
     return new GameMap(config);
   }
+
+  triggerCutscene(who: GameObject, Actions: Array<any>) {}
 }

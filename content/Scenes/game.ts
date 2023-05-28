@@ -6,6 +6,7 @@ import { Player } from "../Game Objects/Player";
 import { Counter } from "../Game Objects/Counter";
 import { Bookshelf } from "../Game Objects/Bookshelf";
 import { NPC1 } from "../Game Objects/npc1";
+import { OutsideMap } from "../Maps/outside";
 
 export class Game extends Scene {
   renderer = GameRenderer;
@@ -18,13 +19,23 @@ export class Game extends Scene {
   public async init() {
     //Loading Assets
     Assets.initialize({ src: "./content/Assets/" });
-    await Assets.load(["lower.png", "DemoUpper.png", "hero.png", "shadow.png", "counter.png", "bookshelf.png", "npc2.png"]);
+    await Assets.load([
+      "lower.png",
+      "DemoUpper.png",
+      "hero.png",
+      "shadow.png",
+      "counter.png",
+      "bookshelf.png",
+      "npc2.png",
+      "outsideUpper.png",
+      "outsideLower.png",
+    ]);
 
     //Initialize Renderer
     this.renderer.initialize(this.renderState, 2, { width: 400, aspectratio: 3 / 2 });
 
     //Load Maps
-    this.renderer.createMap([new Kitchen(Assets)]);
+    this.renderer.createMap([new Kitchen(Assets), new OutsideMap(Assets)]);
     this.renderer.changeMap("kitchen");
 
     //Load Objects
@@ -33,7 +44,6 @@ export class Game extends Scene {
 
     //Set Camera
     this.renderer.cameraFollow("Player");
-    this.renderer.cameraSize(this.renderer.getMapSize());
 
     //START your engines!
     //this.renderer.showCollisionBodies(true);

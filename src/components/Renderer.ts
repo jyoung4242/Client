@@ -2,8 +2,7 @@ import { Engine } from "@peasy-lib/peasy-engine";
 import { Camera, ShakeDirection } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
-import { EventManager } from "./EventManager";
-import { WalkEvent } from "../../content/Events/walk";
+import { EventManager, GameEvent } from "./EventManager";
 
 export type renderType = Array<MapLayer | GameObject>;
 export const RenderState = {
@@ -166,13 +165,22 @@ export class GameRenderer {
       else GameRenderer.state.maps.maps.push(GameMap.create(cfg));
     });
   }
+
   static destroyMap(id: string) {}
-  static changeMap(name: string) {
+
+  static async changeMap(name: string) {
+    //console.log("in mapchange");
+    GameRenderer.cameraFlash(750);
+    await wait(75);
     GameRenderer.state.maps.currentMap = name;
+    GameRenderer.cameraSize(GameRenderer.getMapSize());
   }
+
   static getMapSize() {
     return GameRenderer.state.maps.getCurrentMap.getMapSize();
   }
+
+  static runMapCutscene() {}
 
   //#endregion
 
@@ -186,6 +194,7 @@ export class GameRenderer {
       GameRenderer.renderEngine.pause();
     }
   }
+
   static engineStart(engine?: string) {
     if (engine == "physics") GameRenderer.physicsEngine.start();
     if (engine == "renderer") GameRenderer.renderEngine.start();
@@ -196,6 +205,7 @@ export class GameRenderer {
   }
 
   static renderLoop(deltaTime: number, now: number) {
+    if (GameRenderer.state.maps.getCurrentMap == undefined) return;
     GameRenderer.state.renderedObjects.length = 0;
     GameRenderer.state.gameObjects.objects.forEach(obj =>
       obj.update(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
@@ -203,8 +213,13 @@ export class GameRenderer {
 
     //build out rendered objects for dom rendering
     //MAPS FIRST
-    let numGameObjects = GameRenderer.state.gameObjects.objects.length;
+
     let numMapLayers = GameRenderer.state.maps.getCurrentMap.layers.length;
+    const mapObjects = GameRenderer.state.gameObjects.objects.filter(obj => {
+      return obj.currentMap == GameRenderer.state.maps.getCurrentMap.name;
+    });
+
+    let numGameObjects = mapObjects.length;
 
     for (let index = 0; index < numMapLayers; index++) {
       if (index >= GameRenderer.objectRenderOrder - 1) {
@@ -214,17 +229,17 @@ export class GameRenderer {
     }
     //OBJECTS LAST
     //sort objects by ypos
-
-    GameRenderer.state.gameObjects.objects.sort(function (a, b) {
+    mapObjects.sort(function (a, b) {
       return b.collisionLayers[0].y + b.yPos - (a.collisionLayers[0].y + a.yPos);
     });
 
     for (let index = numGameObjects; index > 0; index--) {
-      GameRenderer.state.gameObjects.objects[index - 1].zIndex = GameRenderer.objectRenderOrder + 1;
-      GameRenderer.state.renderedObjects.push(GameRenderer.state.gameObjects.objects[index - 1]);
+      mapObjects[index - 1].zIndex = GameRenderer.objectRenderOrder - 1 + 1;
+      GameRenderer.state.renderedObjects.push(mapObjects[index - 1]);
     }
     GameRenderer.state.camera.update(deltaTime, now);
   }
+
   static physicsLoop(deltaTime: number, now: number) {
     GameRenderer.state.gameObjects.objects.forEach(obj =>
       obj.physicsUpdate(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
@@ -258,4 +273,35 @@ export class GameRenderer {
   }
 
   //#endregion
+}
+
+export class ChangeMap extends GameEvent {
+  who: GameObject | undefined;
+  newMap: string;
+  newX: number;
+  newY: number;
+
+  constructor(mapname: string, x: number, y: number) {
+    super("mapchange");
+    this.who = undefined;
+    this.newMap = mapname;
+    this.newX = x;
+    this.newY = y;
+  }
+
+  init(who: GameObject): Promise<void> {
+    return new Promise(resolve => {
+      this.who = who;
+      //console.log("map change event, ", this.who, this.newMap);
+      this.who.currentMap = this.newMap;
+      GameRenderer.changeMap(this.newMap);
+      this.who.xPos = this.newX;
+      this.who.yPos = this.newY;
+      resolve();
+    });
+  }
+}
+
+async function wait(delay: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, delay));
 }

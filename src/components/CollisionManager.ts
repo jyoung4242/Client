@@ -1,4 +1,5 @@
 import { Game } from "../../content/Scenes/game";
+import { GameEvent } from "./EventManager";
 import { GameObject } from "./GameObject";
 import { collisionBody } from "./MapManager";
 
@@ -12,6 +13,7 @@ export type TriggerCheck = {
 type collisionResult = {
   status: boolean;
   collisionDirection: Array<direction>;
+  actions?: Array<GameEvent>;
 };
 
 export class CollisionManager {
@@ -22,26 +24,47 @@ export class CollisionManager {
     let B = this.calcCollisionBox(b);
 
     let dirs: Array<direction> = [];
+    let myActions: Array<GameEvent> = [];
 
     if (a.x < B.x + B.w && a.x + a.w > B.x && a.y < B.y + B.h && a.y + a.h > B.y) {
       let directionCheck: Array<direction> = ["up", "down", "left", "right"];
       directionCheck.forEach(dir => {
         switch (dir) {
           case "left":
-            if (this.isLeftFree(a, b) == false) dirs.push("left");
+            if (this.isLeftFree(a, b) == false) {
+              dirs.push("left");
+              if (a.actions) {
+                myActions = [...a.actions];
+              }
+            }
             break;
           case "right":
-            if (this.isRightFree(a, b) == false) dirs.push("right");
+            if (this.isRightFree(a, b) == false) {
+              dirs.push("right");
+              if (a.actions) {
+                myActions = [...a.actions];
+              }
+            }
             break;
           case "up":
-            if (this.isUpFree(a, b) == false) dirs.push("up");
+            if (this.isUpFree(a, b) == false) {
+              dirs.push("up");
+              if (a.actions) {
+                myActions = [...a.actions];
+              }
+            }
             break;
           case "down":
-            if (this.isDownFree(a, b) == false) dirs.push("down");
+            if (this.isDownFree(a, b) == false) {
+              dirs.push("down");
+              if (a.actions) {
+                myActions = [...a.actions];
+              }
+            }
             break;
         }
       });
-      return { status: true, collisionDirection: dirs };
+      return { status: true, collisionDirection: dirs, actions: myActions };
     }
     return { status: false, collisionDirection: [] };
   }

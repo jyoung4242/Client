@@ -5,14 +5,17 @@ import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet
 import { State, States } from "@peasy-lib/peasy-states";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
 import { GameMap, MapLayer, collisionBody } from "../../src/components/MapManager";
+import { EventManager } from "../../src/components/EventManager";
 
 const MAX_WALKING_SPEED = 1.5;
 
 export class Player extends GameObject {
   collisionbodyoffsetX = 0;
   collisions = new CollisionManager();
+  cutscenes;
   animationHandler;
   isMoving: boolean = false;
+  isCutscenePlaying = false;
   direction: direction = "down";
   walkingstates = new WalkingStates();
   demosequence = {
@@ -32,6 +35,7 @@ export class Player extends GameObject {
 
     let config: GameObjectConfig = {
       name: "Player",
+      startingMap: "kitchen",
       initX: 32,
       initY: 78,
       width: 32,
@@ -46,7 +50,7 @@ export class Player extends GameObject {
       },
     };
     super(config);
-
+    this.cutscenes = new EventManager(this, "CUTSCENE");
     this.isPlayable = true;
     this.animationHandler = new AnimationSequence(heroSpritesheet, this.animationUpdate, this.demosequence, 150);
     this.animationHandler.changeSequence("idle-down");
@@ -109,7 +113,10 @@ export class Player extends GameObject {
   physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     //check for object/object collisions
     //filter playable characters out
-    let otherObjects = objects.filter(oo => this.id != oo.id);
+    if (!currentMap) return true;
+    let otherObjects = objects.filter(oo => {
+      return this.id != oo.id && oo.currentMap == currentMap.name;
+    });
     this.collisionDirections = [];
 
     /***********************************
@@ -126,25 +133,48 @@ export class Player extends GameObject {
     /***********************************
      * wall/object collision check
      * ******************************* */
-    currentMap.layers.forEach(ml => {
-      ml.wallLayers.forEach(wl => {
-        let colResult = this.collisions.isObjectColliding({ w: wl.w, h: wl.h, x: wl.x + ml.xPos, y: wl.y + ml.yPos }, this);
-        this.isColliding = colResult.status;
-        this.collisionDirections.push(...colResult.collisionDirection);
+    if (currentMap) {
+      currentMap.layers.forEach(ml => {
+        ml.wallLayers.forEach(wl => {
+          let colResult = this.collisions.isObjectColliding(
+            { w: wl.w, h: wl.h, x: wl.x + ml.xPos, y: wl.y + ml.yPos },
+            this
+          );
+          this.isColliding = colResult.status;
+          this.collisionDirections.push(...colResult.collisionDirection);
+        });
       });
-    });
+    }
 
     /***********************************
      * trigger/object collision check
      * ******************************* */
-    currentMap.layers.forEach(ml => {
-      ml.triggerLayers.forEach(tl => {
-        let colResult = this.collisions.isObjectColliding({ w: tl.w, h: tl.h, x: tl.x + ml.xPos, y: tl.y + ml.yPos }, this);
-        if (colResult.status == true) window.alert("Trigger Space Hit");
-      });
-    });
+    if (currentMap && !this.isCutscenePlaying) {
+      currentMap.layers.forEach(ml => {
+        ml.triggerLayers.forEach(async tl => {
+          let colResult = this.collisions.isObjectColliding(
+            { w: tl.w, h: tl.h, x: tl.x + ml.xPos, y: tl.y + ml.yPos, actions: tl.actions },
+            this
+          );
+          if (colResult.status == true) {
+            //trigger Map Action
+            //look up actions on layer
 
-    if (this.isMoving) {
+            if (colResult.actions) {
+              //console.log("found actions");
+              //console.log(colResult.actions);
+
+              this.cutscenes.loadSequence(colResult.actions);
+              this.isCutscenePlaying = true;
+              await this.cutscenes.start();
+              this.isCutscenePlaying = false;
+            }
+          }
+        });
+      });
+    }
+
+    if (this.isMoving && !this.isCutscenePlaying) {
       switch (this.direction) {
         case "down":
           if (!this.isDirectionInArray("down")) this.yPos += MAX_WALKING_SPEED;

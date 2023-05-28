@@ -5,6 +5,7 @@ export class Counter extends GameObject {
   constructor(assets: any) {
     let config: GameObjectConfig = {
       name: "Counter",
+      startingMap: "kitchen",
       initX: 112,
       initY: 96,
       width: 32,
@@ -16,7 +17,6 @@ export class Counter extends GameObject {
         offsetX: 0,
         offsetY: 6,
         color: "cyan",
-        isVisible: false,
       },
     };
     super(config);

@@ -54,14 +54,12 @@ export class Camera {
 
   static shakeUpdate(time: number): any {
     if (!this.isShaking) return { shakeX: 0, shakeY: 0 };
-    console.log("here");
 
     this.shakeElapsedTime += time; //* 1000
     this.shakeIntervalTime += time * 1000;
-    console.log("shaking:", this.shakeIntervalTime, this.shakeDuration);
+    //console.log("shaking:", this.shakeIntervalTime, this.shakeDuration);
     // We're done shaking
     if (this.shakeElapsedTime >= this.shakeDuration) {
-      console.log("shaking done");
       this.isShaking = false;
       return { shakeX: 0, shakeY: 0 };
     }
@@ -77,8 +75,6 @@ export class Camera {
           this.shakeAngle = this.shakeAngle === 90 ? 270 : 90;
           break;
         case "random":
-          console.log("in random");
-
           this.shakeAngle = Math.floor(Math.random() * 360);
           break;
       }
@@ -104,17 +100,18 @@ export class Camera {
 
 export class CameraFlash extends GameEvent {
   duration: number;
-  who: GameObject;
+  who: GameObject | undefined;
   resolution: ((value: void | PromiseLike<void>) => void) | undefined;
 
-  constructor(who: GameObject, duration: number) {
+  constructor(duration: number) {
     super("cameraflash");
-    this.who = who;
+    this.who = undefined;
     this.duration = duration;
   }
 
-  init(): Promise<void> {
+  init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
+      this.who = who;
       GameRenderer.cameraFlash(this.duration);
       resolve();
     });
@@ -125,21 +122,22 @@ export class CameraShake extends GameEvent {
   direction: ShakeDirection;
   interval: number;
   magnitude: number;
-  who: GameObject;
+  who: GameObject | undefined;
   resolution: ((value: void | PromiseLike<void>) => void) | undefined;
 
-  constructor(who: GameObject, direction: ShakeDirection, magnitude: number, duration: number, interval: number) {
+  constructor(direction: ShakeDirection, magnitude: number, duration: number, interval: number) {
     super("camerashake");
-    this.who = who;
+    this.who = undefined;
     this.duration = duration;
     this.direction = direction;
     this.interval = interval;
     this.magnitude = magnitude;
   }
 
-  init(): Promise<void> {
+  init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
       document.addEventListener("cameraShakeComplete", this.completeHandler);
+      this.who = who;
       GameRenderer.cameraShake(this.who, this.direction, this.magnitude, this.duration, this.interval);
       resolve();
     });

@@ -3,21 +3,22 @@ import { GameEvent } from "../../src/components/EventManager";
 import { GameObject } from "../../src/components/GameObject";
 
 export class WalkEvent extends GameEvent {
-  who: GameObject;
+  who: GameObject | undefined;
   direction: direction;
   distance: number;
   resolution: ((value: void | PromiseLike<void>) => void) | undefined;
 
-  constructor(who: GameObject, direction: direction, distance: number) {
+  constructor(direction: direction, distance: number) {
     super("walk");
-    this.who = who;
+    this.who = undefined;
     this.direction = direction;
     this.distance = distance;
   }
 
-  init(): Promise<void> {
+  init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
       document.addEventListener("walkCompleted", this.completeHandler);
+      this.who = who;
       this.who.startBehavior("walk", this.direction, this.distance);
       this.resolution = resolve;
     });

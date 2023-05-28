@@ -7,6 +7,7 @@ import { GameMap, collisionBody } from "./MapManager";
 export type spriteLayer = Array<Sprite | Spritesheet>;
 
 export type GameObjectConfig = {
+  startingMap: string;
   name: string;
   initX: number;
   initY: number;
@@ -40,6 +41,7 @@ export class GameObject {
   wallLayers = []; //not used in Gameobjects
   triggerLayers = []; //not used in Gameobjects
   isCollisionLayersVisible = false;
+  currentMap = "";
 
   constructor(config: GameObjectConfig) {
     this.name = config.name;
@@ -50,6 +52,7 @@ export class GameObject {
     this.spriteLayers = [...config.sprites];
     this.xPos = config.initX;
     this.yPos = config.initY;
+    this.currentMap = config.startingMap;
     if (config.collisionBody) {
       this.collisionLayers.push({
         w: config.collisionBody.width,

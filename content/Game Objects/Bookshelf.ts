@@ -5,6 +5,7 @@ export class Bookshelf extends GameObject {
   constructor(assets: any) {
     let config: GameObjectConfig = {
       name: "Bookshelf",
+      startingMap: "kitchen",
       initX: 48,
       initY: 48,
       width: 32,
@@ -16,7 +17,6 @@ export class Bookshelf extends GameObject {
         offsetX: 0,
         offsetY: 16,
         color: "cyan",
-        isVisible: false,
       },
     };
     super(config);

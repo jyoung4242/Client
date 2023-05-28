@@ -15,7 +15,7 @@ export class NPC1 extends GameObject {
   isCutscenePlaying = false;
   isStanding = false;
   collisions = new CollisionManager();
-  behaviorLoop = new EventManager("LOOP");
+  behaviorLoop;
   direction: direction;
   xVelocity = 0;
   yVelocity = 0;
@@ -39,6 +39,7 @@ export class NPC1 extends GameObject {
     npcSpritesheet.initialize();
 
     let config: GameObjectConfig = {
+      startingMap: "kitchen",
       name: "NPC1",
       initX: 70,
       initY: 90,
@@ -54,7 +55,7 @@ export class NPC1 extends GameObject {
       },
     };
     super(config);
-
+    this.behaviorLoop = new EventManager(this, "LOOP");
     this.animationHandler = new AnimationSequence(npcSpritesheet, this.animationUpdate, this.demosequence, 150);
     this.animationHandler.changeSequence("idle-down");
     this.walkingstates.register(isWalking, isIdle);
@@ -62,26 +63,24 @@ export class NPC1 extends GameObject {
 
     this.direction = "down";
     this.behaviorLoop.loadSequence([
-      new WalkEvent(this, "down", 25),
-      new StandEvent(this, "left", 750),
-      new StandEvent(this, "down", 750),
-      new StandEvent(this, "right", 750),
-      new CameraShake(this, "random", 2.5, 500, 15),
-      new WalkEvent(this, "left", 25),
-      new StandEvent(this, "right", 750),
-      new StandEvent(this, "down", 750),
-      new StandEvent(this, "left", 750),
-      new CameraFlash(this, 150),
-      new WalkEvent(this, "up", 25),
-      new StandEvent(this, "right", 750),
-      new StandEvent(this, "down", 750),
-      new StandEvent(this, "left", 750),
-      new CameraShake(this, "random", 2.5, 500, 15),
-      new WalkEvent(this, "right", 25),
-      new StandEvent(this, "left", 750),
-      new StandEvent(this, "down", 750),
-      new StandEvent(this, "right", 750),
-      new CameraFlash(this, 150),
+      new WalkEvent("down", 25),
+      new StandEvent("left", 750),
+      new StandEvent("down", 750),
+      new StandEvent("right", 750),
+      new CameraShake("random", 2.5, 500, 15),
+      new WalkEvent("left", 25),
+      new StandEvent("right", 750),
+      new StandEvent("down", 750),
+      new StandEvent("left", 750),
+      new WalkEvent("up", 25),
+      new StandEvent("right", 750),
+      new StandEvent("down", 750),
+      new StandEvent("left", 750),
+      new CameraShake("random", 2.5, 500, 15),
+      new WalkEvent("right", 25),
+      new StandEvent("left", 750),
+      new StandEvent("down", 750),
+      new StandEvent("right", 750),
     ]);
     this.behaviorLoop.start();
   }
@@ -134,6 +133,9 @@ export class NPC1 extends GameObject {
   physicsUpdate = (deltaTime: number, objects: GameObject[], currentMap: GameMap): boolean => {
     //check for object/object collisions
     //filter playable characters out
+
+    if (!currentMap) return true;
+    if (currentMap.name != this.currentMap) return true;
     let otherObjects = objects.filter(oo => this.id != oo.id);
     this.collisionDirections = [];
 

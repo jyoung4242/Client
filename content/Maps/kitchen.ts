@@ -1,6 +1,9 @@
+import { GameObject } from "../../src/components/GameObject";
 import { GameMap, MapConfig } from "../../src/components/MapManager";
+import { ChangeMap } from "../../src/components/Renderer";
 
 export class Kitchen extends GameMap {
+  static who: GameObject;
   constructor(assets: any) {
     let config: MapConfig = {
       name: "kitchen",
@@ -93,6 +96,7 @@ export class Kitchen extends GameMap {
           w: 16,
           h: 5,
           color: "yellow",
+          actions: [new ChangeMap("outside", 50, 200)],
         },
       ],
     };

@@ -3,21 +3,22 @@ import { GameEvent } from "../../src/components/EventManager";
 import { GameObject } from "../../src/components/GameObject";
 
 export class StandEvent extends GameEvent {
-  who: GameObject;
+  who: GameObject | undefined;
   direction: direction;
   duration: number;
   resolution: ((value: void | PromiseLike<void>) => void) | undefined;
 
-  constructor(who: GameObject, direction: direction, duration: number) {
+  constructor(direction: direction, duration: number) {
     super("stand");
-    this.who = who;
+    this.who = undefined;
     this.direction = direction;
     this.duration = duration;
   }
 
-  init(): Promise<void> {
+  init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
       document.addEventListener("standCompleted", this.completeHandler);
+      this.who = who;
       this.who.startBehavior("stand", this.direction, this.duration);
       this.resolution = resolve;
     });
