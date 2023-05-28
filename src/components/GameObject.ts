@@ -65,6 +65,8 @@ export class GameObject {
     return new GameObject(config);
   }
 
+  startBehavior(behavior: string, ...params: any) {}
+
   update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     return true;
   }

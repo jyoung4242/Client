@@ -54,7 +54,7 @@ export class GameRenderer {
             height: 100%;
         }
         camera-layer{
-            position: relative:
+            position: relative;
             top: 0;
             left:0;
             width: 100%;
@@ -75,6 +75,8 @@ export class GameRenderer {
             position:absolute;
             display:block;
             background-repeat: no-repeat;
+            
+            
         }
         .object-sprite{
           position: absolute;
@@ -93,7 +95,7 @@ export class GameRenderer {
             <camera-layer>
                 <camera-flash></camera-flash>
                 <render-object id="\${obj.id}" data-type="\${obj.name}" class="\${obj.class}" style="transform: translate3d(\${obj.xPos}px, \${obj.yPos}px, 0px);z-index: \${obj.zIndex}; width: \${obj.width}px;height: \${obj.height}px;background-image:url('\${obj.src}');" \${obj<=*renderState.renderedObjects:id}>
-                  <render-inner style="position: relative; width: 100%; height: 100%, top:0px; left: 0px">
+                  <render-inner style="position: relative;display: block; width: 100%; height: 100%; top:0px; left: 0px">
                     <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
                     <collision-layers \${===obj.isCollisionLayersVisible}>
                       <border-box class="border-box"  \${cl<=*obj.collisionLayers}  style="z-index: 9999;border: 1px solid \${cl.color}; top: \${cl.y}px; left:\${cl.x}px; width: \${cl.w}px; height: \${cl.h}px;"></border-box>
@@ -105,6 +107,9 @@ export class GameRenderer {
             </camera-layer>
         </camera-static>
     `;
+
+  /*
+    transition: transform 0.05s , z-index 0.05s ; */
 
   static initialize(
     state: typeof RenderState,
