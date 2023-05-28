@@ -7,6 +7,7 @@ import { EventManager } from "../../src/components/EventManager";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
 import { GameMap } from "../../src/components/MapManager";
 import { State, States } from "@peasy-lib/peasy-states";
+import { CameraFlash, CameraShake } from "../../src/components/Camera";
 
 const NPC_WALKSPEED = 1;
 
@@ -65,18 +66,22 @@ export class NPC1 extends GameObject {
       new StandEvent(this, "left", 750),
       new StandEvent(this, "down", 750),
       new StandEvent(this, "right", 750),
+      new CameraShake(this, "random", 2.5, 500, 15),
       new WalkEvent(this, "left", 25),
       new StandEvent(this, "right", 750),
       new StandEvent(this, "down", 750),
       new StandEvent(this, "left", 750),
+      new CameraFlash(this, 150),
       new WalkEvent(this, "up", 25),
       new StandEvent(this, "right", 750),
       new StandEvent(this, "down", 750),
       new StandEvent(this, "left", 750),
+      new CameraShake(this, "random", 2.5, 500, 15),
       new WalkEvent(this, "right", 25),
       new StandEvent(this, "left", 750),
       new StandEvent(this, "down", 750),
       new StandEvent(this, "right", 750),
+      new CameraFlash(this, 150),
     ]);
     this.behaviorLoop.start();
   }
@@ -206,3 +211,4 @@ class isIdle extends State {
   }
   exit() {}
 }
+//new CameraFlash(this, 250),

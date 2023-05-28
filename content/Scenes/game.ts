@@ -33,6 +33,7 @@ export class Game extends Scene {
 
     //Set Camera
     this.renderer.cameraFollow("Player");
+    this.renderer.cameraSize(this.renderer.getMapSize());
 
     //START your engines!
     //this.renderer.showCollisionBodies(true);

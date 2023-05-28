@@ -1,5 +1,5 @@
 import { Engine } from "@peasy-lib/peasy-engine";
-import { Camera } from "./Camera";
+import { Camera, ShakeDirection } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
 import { EventManager } from "./EventManager";
@@ -50,9 +50,9 @@ export class GameRenderer {
             position: absolute;
             top: 0;
             left:0;
-            width: 100%;
-            height: 100%;
+            
         }
+        
         camera-layer{
             position: relative;
             top: 0;
@@ -63,12 +63,23 @@ export class GameRenderer {
         }
 
         camera-flash{
+            display: block;
             position: absolute;
             top: 0;
             left:0;
             width: 100%;
             height: 100%;
+            background-color: white;
+            opacity: 1;
+            transition: opacity 0.2s;
+            z-index: 999999;
         }
+        camera-flash.pui-adding,
+        camera-flash.pui-removing
+        {
+          opacity: 0;
+        }
+        
         .map, .gameObject, .object_sprite{
             top:0;
             left:0;
@@ -91,9 +102,9 @@ export class GameRenderer {
         }
        
         </style>
-        <camera-static style="transform: translate(\${renderState.camera.xPos}px,\${renderState.camera.yPos}px);">
-            <camera-layer>
-                <camera-flash></camera-flash>
+        <camera-static style="transform: translate(\${renderState.camera.xPos}px,\${renderState.camera.yPos}px); width: \${renderState.camera.cWidth}px; height:\${renderState.camera.cHeight}px; ">
+            <camera-layer style="width: 100%; height: 100%;display: block;">
+                <camera-flash class="camera-flash" \${===renderState.camera.isFlashEnabled}></camera-flash>
                 <render-object id="\${obj.id}" data-type="\${obj.name}" class="\${obj.class}" style="transform: translate3d(\${obj.xPos}px, \${obj.yPos}px, 0px);z-index: \${obj.zIndex}; width: \${obj.width}px;height: \${obj.height}px;background-image:url('\${obj.src}');" \${obj<=*renderState.renderedObjects:id}>
                   <render-inner style="position: relative;display: block; width: 100%; height: 100%; top:0px; left: 0px">
                     <sprite-layer class="object_sprite" \${sl<=*obj.spriteLayers} style="z-index: \${sl.zIndex}; width: \${sl.width}px;height: \${sl.height}px;background-image:url('\${sl.src}');background-position: \${sl.animationBinding};"></sprite-layer>
@@ -107,9 +118,6 @@ export class GameRenderer {
             </camera-layer>
         </camera-static>
     `;
-
-  /*
-    transition: transform 0.05s , z-index 0.05s ; */
 
   static initialize(
     state: typeof RenderState,
@@ -162,6 +170,9 @@ export class GameRenderer {
   static changeMap(name: string) {
     GameRenderer.state.maps.currentMap = name;
   }
+  static getMapSize() {
+    return GameRenderer.state.maps.getCurrentMap.getMapSize();
+  }
 
   //#endregion
 
@@ -212,7 +223,7 @@ export class GameRenderer {
       GameRenderer.state.gameObjects.objects[index - 1].zIndex = GameRenderer.objectRenderOrder + 1;
       GameRenderer.state.renderedObjects.push(GameRenderer.state.gameObjects.objects[index - 1]);
     }
-    GameRenderer.state.camera.update();
+    GameRenderer.state.camera.update(deltaTime, now);
   }
   static physicsLoop(deltaTime: number, now: number) {
     GameRenderer.state.gameObjects.objects.forEach(obj =>
@@ -226,6 +237,19 @@ export class GameRenderer {
     //find GameObject with name
     const goIndex = RenderState.gameObjects.objects.findIndex(go => go.name == who);
     if (goIndex != -1) RenderState.camera.follow(RenderState.gameObjects.objects[goIndex]);
+  }
+
+  static cameraFlash(duration: number) {
+    RenderState.camera.flash(duration);
+  }
+
+  static cameraShake(who: GameObject, direction: ShakeDirection, magnitude: number, duration: number, interval: number) {
+    RenderState.camera.shake(who, direction, magnitude, duration, interval);
+  }
+
+  static cameraSize(size: { width: number; height: number }) {
+    RenderState.camera.cWidth = size.width;
+    RenderState.camera.cHeight = size.height;
   }
 
   static showCollisionBodies(visible: boolean) {

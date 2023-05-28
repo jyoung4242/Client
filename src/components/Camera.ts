@@ -1,4 +1,6 @@
+import { GameEvent } from "./EventManager";
 import { GameObject } from "./GameObject";
+import { GameRenderer } from "./Renderer";
 
 export type ShakeDirection = "horizontal" | "vertical" | "random";
 
@@ -6,6 +8,8 @@ export class Camera {
   //shaking props
   static xPos = 0;
   static yPos = 0;
+  static cWidth = 0;
+  static cHeight = 0;
   static isShaking: boolean = false;
   static shakeType: ShakeDirection = "horizontal";
   static shakeAngle = 0;
@@ -17,13 +21,14 @@ export class Camera {
   static followedObject: GameObject | undefined;
   static vpW: number;
   static vpH: number;
+  static isFlashEnabled = false;
 
   static initialize(w: number, h: number) {
     Camera.vpW = w;
     Camera.vpH = h;
   }
 
-  static shake(shakeType: ShakeDirection, magnitude: number, duration: number, interval: number) {
+  static shake(who: GameObject, shakeType: ShakeDirection, magnitude: number, duration: number, interval: number) {
     Camera.shakeElapsedTime = 0;
     Camera.shakeIntervalTime = 0;
     Camera.shakeType = shakeType;
@@ -31,17 +36,16 @@ export class Camera {
     Camera.shakeDuration = duration;
     Camera.shakeFrequency = interval;
     Camera.isShaking = true;
-    //TODO - get instance of framework state into Camera
-    //const event = new CustomEvent("cameraShakeComplete", { detail: { whoID: this.state.objects[0] } });
-    //document.dispatchEvent(event);
+
+    const event = new CustomEvent("cameraShakeComplete", { detail: who });
+    document.dispatchEvent(event);
   }
 
-  static flash() {
-    //TODO - get instance of framework state into Camera
-    /* this.state.camera.flash = true;
+  static flash(duration: number) {
+    Camera.isFlashEnabled = true;
     setTimeout(() => {
-      this.state.camera.flash = false;
-    }, 10); */
+      Camera.isFlashEnabled = false;
+    }, duration);
   }
 
   static follow(who: GameObject) {
@@ -50,12 +54,14 @@ export class Camera {
 
   static shakeUpdate(time: number): any {
     if (!this.isShaking) return { shakeX: 0, shakeY: 0 };
+    console.log("here");
 
-    this.shakeElapsedTime += time * 1000;
+    this.shakeElapsedTime += time; //* 1000
     this.shakeIntervalTime += time * 1000;
-    //console.log("shaking:", this.shakeIntervalTime, this.shakeDuration);
+    console.log("shaking:", this.shakeIntervalTime, this.shakeDuration);
     // We're done shaking
     if (this.shakeElapsedTime >= this.shakeDuration) {
+      console.log("shaking done");
       this.isShaking = false;
       return { shakeX: 0, shakeY: 0 };
     }
@@ -71,6 +77,8 @@ export class Camera {
           this.shakeAngle = this.shakeAngle === 90 ? 270 : 90;
           break;
         case "random":
+          console.log("in random");
+
           this.shakeAngle = Math.floor(Math.random() * 360);
           break;
       }
@@ -82,14 +90,65 @@ export class Camera {
     return { shakeX: this.shakeMagnitude * Math.cos(theta), shakeY: this.shakeMagnitude * Math.sin(theta) };
   }
 
-  static update() {
+  static update(deltaTime: number, now: number) {
     if (Camera.followedObject) {
       let followPosition_viewportX = Camera.vpW / 2 - Camera.followedObject?.width / 2;
       let followPosition_viewportY = Camera.vpH / 2 - Camera.followedObject?.height / 2;
-      let { shakeX, shakeY } = this.shakeUpdate(0.1);
+      let { shakeX, shakeY } = this.shakeUpdate(deltaTime);
 
       Camera.xPos = followPosition_viewportX - Camera.followedObject?.xPos + shakeX;
       Camera.yPos = followPosition_viewportY - Camera.followedObject?.yPos + shakeY;
     }
   }
+}
+
+export class CameraFlash extends GameEvent {
+  duration: number;
+  who: GameObject;
+  resolution: ((value: void | PromiseLike<void>) => void) | undefined;
+
+  constructor(who: GameObject, duration: number) {
+    super("cameraflash");
+    this.who = who;
+    this.duration = duration;
+  }
+
+  init(): Promise<void> {
+    return new Promise(resolve => {
+      GameRenderer.cameraFlash(this.duration);
+      resolve();
+    });
+  }
+}
+export class CameraShake extends GameEvent {
+  duration: number;
+  direction: ShakeDirection;
+  interval: number;
+  magnitude: number;
+  who: GameObject;
+  resolution: ((value: void | PromiseLike<void>) => void) | undefined;
+
+  constructor(who: GameObject, direction: ShakeDirection, magnitude: number, duration: number, interval: number) {
+    super("camerashake");
+    this.who = who;
+    this.duration = duration;
+    this.direction = direction;
+    this.interval = interval;
+    this.magnitude = magnitude;
+  }
+
+  init(): Promise<void> {
+    return new Promise(resolve => {
+      document.addEventListener("cameraShakeComplete", this.completeHandler);
+      GameRenderer.cameraShake(this.who, this.direction, this.magnitude, this.duration, this.interval);
+      resolve();
+    });
+  }
+
+  completeHandler = (e: any) => {
+    if (e.detail === this.who) {
+      document.removeEventListener("cameraShakeComplete", this.completeHandler);
+      if (this.resolution) this.resolution();
+    }
+  };
 }

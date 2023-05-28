@@ -87,6 +87,9 @@ export class GameMap {
       }
     });
   }
+  getMapSize = () => {
+    return { width: this.width, height: this.height };
+  };
 
   static create(config: MapConfig) {
     return new GameMap(config);
