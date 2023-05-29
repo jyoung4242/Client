@@ -1,7 +1,7 @@
 import { Game } from "../../content/Scenes/game";
 import { GameEvent } from "./EventManager";
-import { GameObject } from "./GameObject";
-import { collisionBody } from "./MapManager";
+import { GameObject, interaction } from "./GameObject";
+import { GameMap, collisionBody } from "./MapManager";
 
 export type direction = "down" | "left" | "up" | "right";
 
@@ -188,4 +188,122 @@ export class CollisionManager {
 
     return true;
   };
+
+  detectingInteractions = (
+    who: GameObject,
+    direction: direction,
+    distance: number,
+    objects: Array<GameObject>,
+    currentMap: GameMap
+  ): Array<interaction> | undefined => {
+    // find point that needs testing
+    //find x,y location of centerpoint of collisionbody
+    const cbCenterPointX = who.xPos + who.collisionLayers[0].x + who.collisionLayers[0].w / 2;
+    const cbCenterPointY = who.yPos + who.collisionLayers[0].y + who.collisionLayers[0].h / 2;
+    //console.log("finding centerpoint of current body: ", cbCenterPointX, cbCenterPointY);
+
+    let RCpointX: number, RCpointY: number;
+    switch (direction) {
+      case "down":
+        RCpointX = cbCenterPointX;
+        RCpointY = cbCenterPointY + distance;
+        break;
+      case "up":
+        RCpointX = cbCenterPointX;
+        RCpointY = cbCenterPointY - distance;
+        break;
+      case "left":
+        RCpointX = cbCenterPointX - distance;
+        RCpointY = cbCenterPointY;
+        break;
+      case "right":
+        RCpointX = cbCenterPointX + distance;
+        RCpointY = cbCenterPointY;
+        break;
+    }
+    //console.log("detection point", RCpointX, RCpointY);
+
+    // take point and see if it falls inside any object collision box that is on same map
+    const mappedObjects = objects.filter(obj => {
+      return obj.currentMap == currentMap.name && obj.name != who.name;
+    });
+
+    //console.log("mapped objects", mappedObjects);
+
+    const foundObject = mappedObjects.find(mo => {
+      return lineObjectCollision({ x1: cbCenterPointX, y1: cbCenterPointY, x2: RCpointX, y2: RCpointY }, mo);
+    });
+
+    // if object found, return the interaction object
+    if (foundObject) {
+      //console.log("found cb: ", foundObject);
+
+      return foundObject.interactionEvents;
+    }
+
+    return undefined;
+  };
+}
+
+function lineObjectCollision(line: { x1: number; y1: number; x2: number; y2: number }, body: GameObject): boolean {
+  const left = lineLine(
+    { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
+    {
+      x1: body.xPos + body.collisionLayers[0].x,
+      y1: body.yPos + body.collisionLayers[0].y,
+      x2: body.xPos + body.collisionLayers[0].x,
+      y2: body.yPos + body.collisionLayers[0].y + body.collisionLayers[0].h,
+    }
+  );
+  const right = lineLine(
+    { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
+    {
+      x1: body.xPos + body.collisionLayers[0].x + body.collisionLayers[0].w,
+      y1: body.yPos + body.collisionLayers[0].y,
+      x2: body.xPos + body.collisionLayers[0].x + body.collisionLayers[0].w,
+      y2: body.yPos + body.collisionLayers[0].y + body.collisionLayers[0].h,
+    }
+  );
+  const top = lineLine(
+    { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
+    {
+      x1: body.xPos + body.collisionLayers[0].x,
+      y1: body.yPos + body.collisionLayers[0].y,
+      x2: body.xPos + body.collisionLayers[0].x + body.collisionLayers[0].w,
+      y2: body.yPos + body.collisionLayers[0].y,
+    }
+  );
+  const bottom = lineLine(
+    { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
+    {
+      x1: body.xPos + body.collisionLayers[0].x,
+      y1: body.yPos + body.collisionLayers[0].y + body.collisionLayers[0].h,
+      x2: body.xPos + body.collisionLayers[0].x + body.collisionLayers[0].w,
+      y2: body.yPos + body.collisionLayers[0].y + body.collisionLayers[0].h,
+    }
+  );
+
+  if (left || right || top || bottom) {
+    return true;
+  }
+  return false;
+}
+
+function lineLine(
+  line1: { x1: number; y1: number; x2: number; y2: number },
+  line2: { x1: number; y1: number; x2: number; y2: number }
+): boolean {
+  // calculate the distance to intersection point
+  const uA =
+    ((line2.x2 - line2.x1) * (line1.y1 - line2.y1) - (line2.y2 - line2.y1) * (line1.x1 - line2.x1)) /
+    ((line2.y2 - line2.y1) * (line1.x2 - line1.x1) - (line2.x2 - line2.x1) * (line1.y2 - line1.y1));
+  const uB =
+    ((line1.x2 - line1.x1) * (line1.y1 - line2.y1) - (line1.y2 - line1.y1) * (line1.x1 - line2.x1)) /
+    ((line2.y2 - line2.y1) * (line1.x2 - line1.x1) - (line2.x2 - line2.x1) * (line1.y2 - line1.y1));
+
+  // if uA and uB are between 0-1, lines are colliding
+  if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+    return true;
+  }
+  return false;
 }

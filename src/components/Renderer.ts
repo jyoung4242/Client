@@ -34,6 +34,7 @@ export const RenderState = {
     isTriggersVisible: false,
   },
   renderedObjects: <renderType>[],
+  storyFlags: {},
 };
 
 //this will control Camera, Maps, and gameObjects
@@ -121,6 +122,7 @@ export class GameRenderer {
   static initialize(
     state: typeof RenderState,
     objectRenderOrder: number,
+    storyFlags: any,
     viweportsize: { width: number; aspectratio: number }
   ) {
     /*********************
@@ -129,6 +131,7 @@ export class GameRenderer {
     GameRenderer.state = state;
     GameRenderer.state.viewport.width = viweportsize.width;
     GameRenderer.state.viewport.height = viweportsize.width * (1 / viweportsize.aspectratio);
+    Object.assign(GameRenderer.state.storyFlags, storyFlags);
     GameRenderer.objectRenderOrder = objectRenderOrder;
 
     /*********************
@@ -208,7 +211,12 @@ export class GameRenderer {
     if (GameRenderer.state.maps.getCurrentMap == undefined) return;
     GameRenderer.state.renderedObjects.length = 0;
     GameRenderer.state.gameObjects.objects.forEach(obj =>
-      obj.update(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
+      obj.update(
+        deltaTime,
+        GameRenderer.state.gameObjects.objects,
+        GameRenderer.state.maps.getCurrentMap,
+        GameRenderer.state.storyFlags
+      )
     );
 
     //build out rendered objects for dom rendering
@@ -242,7 +250,12 @@ export class GameRenderer {
 
   static physicsLoop(deltaTime: number, now: number) {
     GameRenderer.state.gameObjects.objects.forEach(obj =>
-      obj.physicsUpdate(deltaTime, GameRenderer.state.gameObjects.objects, GameRenderer.state.maps.getCurrentMap)
+      obj.physicsUpdate(
+        deltaTime,
+        GameRenderer.state.gameObjects.objects,
+        GameRenderer.state.maps.getCurrentMap,
+        GameRenderer.state.storyFlags
+      )
     );
   }
   //#endregion

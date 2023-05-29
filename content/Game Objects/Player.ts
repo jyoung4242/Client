@@ -1,13 +1,14 @@
-import { GameObject, GameObjectConfig } from "../../src/components/GameObject";
+import { GameObject, GameObjectConfig, interaction } from "../../src/components/GameObject";
 import { Sprite } from "../../src/components/Sprite";
 import { InputManager } from "../../src/components/InputManager";
 import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet";
 import { State, States } from "@peasy-lib/peasy-states";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
-import { GameMap, MapLayer, collisionBody } from "../../src/components/MapManager";
-import { EventManager } from "../../src/components/EventManager";
+import { GameMap } from "../../src/components/MapManager";
+import { EventManager, GameEvent } from "../../src/components/EventManager";
 
 const MAX_WALKING_SPEED = 1.5;
+const DETECTION_DISTANCE = 25;
 
 export class Player extends GameObject {
   collisionbodyoffsetX = 0;
@@ -18,6 +19,7 @@ export class Player extends GameObject {
   isCutscenePlaying = false;
   direction: direction = "down";
   walkingstates = new WalkingStates();
+  isCheckForInteractions = false;
   demosequence = {
     "walk-up": [8, 9, 10, 11],
     "walk-down": [0, 1, 2, 3],
@@ -57,6 +59,10 @@ export class Player extends GameObject {
     this.walkingstates.register(isWalking, isIdle);
     this.walkingstates.set(isIdle, performance.now(), "down", "idle-down", this);
 
+    /***********************************
+     * using the Input Manager, sets up
+     * peasy-input with proper callbacks
+     * ******************************* */
     InputManager.register({
       Keyboard: {
         ArrowLeft: {
@@ -104,13 +110,21 @@ export class Player extends GameObject {
     });
   }
 
+  /***********************************
+   * update callback for the
+   * animation handler
+   * ******************************* */
   animationUpdate = () => (this.spriteLayers[1].animationBinding = this.animationHandler.getFrameDetails());
 
+  /***********************************
+   * peasy-engine renderer and physics
+   * gameloop callbacks for each entity
+   * ******************************* */
   update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
     return true;
   }
 
-  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap, storyFlags: any): boolean {
     //check for object/object collisions
     //filter playable characters out
     if (!currentMap) return true;
@@ -159,11 +173,7 @@ export class Player extends GameObject {
           if (colResult.status == true) {
             //trigger Map Action
             //look up actions on layer
-
             if (colResult.actions) {
-              //console.log("found actions");
-              //console.log(colResult.actions);
-
               this.cutscenes.loadSequence(colResult.actions);
               this.isCutscenePlaying = true;
               await this.cutscenes.start();
@@ -174,6 +184,52 @@ export class Player extends GameObject {
       });
     }
 
+    /***********************************
+     * testing if interaction with object
+     * check is needed
+     * ******************************* */
+    if (this.isCheckForInteractions) {
+      const objectInteractions: Array<interaction> | undefined = this.collisions.detectingInteractions(
+        this,
+        this.direction,
+        DETECTION_DISTANCE,
+        objects,
+        currentMap
+      );
+      if (objectInteractions) {
+        //loop through interactions
+        let myContent;
+        for (const [key, entry] of Object.entries(objectInteractions)) {
+          const conditions = Object.entries(entry.conditions);
+
+          if (entry.conditions == "default") {
+            myContent = entry.content;
+            break;
+          } else if (conditions.length) {
+            let test_cntr = 0;
+            conditions.forEach((cond: any) => {
+              if (storyFlags[cond[0]] == cond[1]) {
+                test_cntr++;
+              }
+            });
+            if (test_cntr == conditions.length) myContent = entry.content;
+            break;
+          } else {
+            myContent = entry.content;
+          }
+        }
+        if (myContent) {
+          this.cutscenes.loadSequence(myContent);
+          this.cutscenes.start();
+        }
+      }
+      this.isCheckForInteractions = false;
+    }
+
+    /***********************************
+     * all checks are complete, adjust player's position
+     * assuming there are no collisions
+     * ******************************* */
     if (this.isMoving && !this.isCutscenePlaying) {
       switch (this.direction) {
         case "down":
@@ -193,6 +249,10 @@ export class Player extends GameObject {
     return true;
   }
 
+  /***********************************
+   * these are the keypress callbacks
+   * bound by peasy-input
+   * ******************************* */
   leftArrow = () => {
     this.walkingstates.set(isWalking, performance.now(), "left", "walk-left", this);
   };
@@ -209,14 +269,23 @@ export class Player extends GameObject {
     this.walkingstates.set(isIdle, performance.now(), this.direction, `idle-${this.direction}`, this);
   };
   interact = () => {
-    console.log("space pressed");
+    this.isCheckForInteractions = true;
   };
 
+  /***********************************
+   * this is the utility function that
+   * parses the collision array for
+   * directionaly collision
+   * ******************************* */
   isDirectionInArray(dir: string): boolean {
     return this.collisionDirections.find(d => d == dir) != undefined;
   }
 }
 
+/***********************************
+ * animation states for managing differet
+ * animation sequences, uses peasy-states
+ * ******************************* */
 class WalkingStates extends States {}
 class isWalking extends State {
   enter(_previous: State | null, ...params: any): void | Promise<void> {

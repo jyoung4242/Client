@@ -11,6 +11,9 @@ import { OutsideMap } from "../Maps/outside";
 export class Game extends Scene {
   renderer = GameRenderer;
   renderState = RenderState;
+  storyFlags = {
+    someCondition: true,
+  };
 
   public template = `<scene-layer class="scene" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; color: white;">
     ${this.renderer.template}
@@ -32,7 +35,7 @@ export class Game extends Scene {
     ]);
 
     //Initialize Renderer
-    this.renderer.initialize(this.renderState, 2, { width: 400, aspectratio: 3 / 2 });
+    this.renderer.initialize(this.renderState, 2, this.storyFlags, { width: 400, aspectratio: 3 / 2 });
 
     //Load Maps
     this.renderer.createMap([new Kitchen(Assets), new OutsideMap(Assets)]);

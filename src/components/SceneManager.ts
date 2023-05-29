@@ -7,6 +7,7 @@ export class Scene extends State {
   public view: UIView | undefined = undefined;
   public template: string = "";
   public stateData: any;
+  public storyFlags = {};
 
   public enter(previous: State | null) {
     this.view = UI.create(document.querySelector("#Viewport") as HTMLElement, this, this.template);

@@ -3,8 +3,14 @@ import { Spritesheet } from "./Spritesheet";
 import { Sprite } from "./Sprite";
 import { direction } from "./CollisionManager";
 import { GameMap, collisionBody } from "./MapManager";
+import { GameEvent } from "./EventManager";
 
 export type spriteLayer = Array<Sprite | Spritesheet>;
+
+export type interaction = {
+  conditions: { [key: string]: boolean } | "default";
+  content: Array<GameEvent>;
+};
 
 export type GameObjectConfig = {
   startingMap: string;
@@ -42,6 +48,7 @@ export class GameObject {
   triggerLayers = []; //not used in Gameobjects
   isCollisionLayersVisible = false;
   currentMap = "";
+  interactionEvents: Array<interaction> = [];
 
   constructor(config: GameObjectConfig) {
     this.name = config.name;
@@ -70,10 +77,10 @@ export class GameObject {
 
   startBehavior(behavior: string, ...params: any) {}
 
-  update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
+  update(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap, storyFlags: any): boolean {
     return true;
   }
-  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap): boolean {
+  physicsUpdate(deltaTime: number, objects: Array<GameObject>, currentMap: GameMap, storyFlags: any): boolean {
     return true;
   }
 }

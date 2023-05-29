@@ -1,4 +1,4 @@
-import { GameObject, GameObjectConfig } from "../../src/components/GameObject";
+import { GameObject, GameObjectConfig, interaction } from "../../src/components/GameObject";
 import { Sprite } from "../../src/components/Sprite";
 import { AnimationSequence, Spritesheet } from "../../src/components/Spritesheet";
 import { StandEvent } from "../Events/stand";
@@ -7,7 +7,7 @@ import { EventManager } from "../../src/components/EventManager";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
 import { GameMap } from "../../src/components/MapManager";
 import { State, States } from "@peasy-lib/peasy-states";
-import { CameraFlash, CameraShake } from "../../src/components/Camera";
+import { LogEvent } from "../Events/log";
 
 const NPC_WALKSPEED = 1;
 
@@ -55,6 +55,19 @@ export class NPC1 extends GameObject {
       },
     };
     super(config);
+
+    this.interactionEvents = [
+      {
+        conditions: {
+          someCondition: true,
+        },
+        content: [new LogEvent("story flag met")],
+      },
+      {
+        conditions: "default",
+        content: [new LogEvent("no story flag conditions")],
+      },
+    ];
     this.behaviorLoop = new EventManager(this, "LOOP");
     this.animationHandler = new AnimationSequence(npcSpritesheet, this.animationUpdate, this.demosequence, 150);
     this.animationHandler.changeSequence("idle-down");
@@ -67,7 +80,6 @@ export class NPC1 extends GameObject {
       new StandEvent("left", 750),
       new StandEvent("down", 750),
       new StandEvent("right", 750),
-      new CameraShake("random", 2.5, 500, 15),
       new WalkEvent("left", 25),
       new StandEvent("right", 750),
       new StandEvent("down", 750),
@@ -76,7 +88,6 @@ export class NPC1 extends GameObject {
       new StandEvent("right", 750),
       new StandEvent("down", 750),
       new StandEvent("left", 750),
-      new CameraShake("random", 2.5, 500, 15),
       new WalkEvent("right", 25),
       new StandEvent("left", 750),
       new StandEvent("down", 750),
