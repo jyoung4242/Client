@@ -511,12 +511,24 @@ export class DialogManager {
   }
 
   speedup() {
-    clearInterval(this.dlgIntervalHandler);
-    this.dlgIntervalHandler = 0;
-    this.dlgIntervalHandler = setInterval(() => {
-      this.dialogContent = this.dialogPendingContent.substring(0, this.letterIndex);
-      this.letterIndex++;
-    }, 5);
+    console.log(this.letterIndex, this.dialogPendingContent.length);
+
+    if (this.letterIndex == this.dialogPendingContent.length) {
+      this.runNext();
+    } else {
+      clearInterval(this.dlgIntervalHandler);
+      this.dlgIntervalHandler = 0;
+      this.dlgIntervalHandler = setInterval(() => {
+        if (this.letterIndex >= this.dialogPendingContent.length + 1) {
+          this.clearDmInterval();
+          console.log("resetting index");
+          this.letterIndex = this.dialogPendingContent.length;
+          return;
+        }
+        this.dialogContent = this.dialogPendingContent.substring(0, this.letterIndex);
+        this.letterIndex++;
+      }, 5);
+    }
   }
 
   async wait(howlong: number): Promise<void> {

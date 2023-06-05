@@ -95,7 +95,7 @@ export class InputManager {
         InputManager.keys[myAction[0]].callback();
       } else {
         if (keyboardMap.release) {
-          keyboardMap["release"].callback();
+          keyboardMap["release"].callback(action);
         }
       }
     });

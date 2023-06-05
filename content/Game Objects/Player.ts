@@ -14,6 +14,10 @@ const DETECTION_DISTANCE = 25;
 
 export class Player extends GameObject {
   dm;
+  isLeftArrowDown = false;
+  isRightArrowDown = false;
+  isUpArrowDown = false;
+  isDownArrowDown = false;
   collisionbodyoffsetX = 0;
   collisions = new CollisionManager();
   cutscenes;
@@ -255,19 +259,38 @@ export class Player extends GameObject {
    * bound by peasy-input
    * ******************************* */
   leftArrow = () => {
+    this.isLeftArrowDown = true;
     this.walkingstates.set(isWalking, performance.now(), "left", "walk-left", this);
   };
   rightArrow = () => {
+    this.isRightArrowDown = true;
     this.walkingstates.set(isWalking, performance.now(), "right", "walk-right", this);
   };
   upArrow = () => {
+    this.isUpArrowDown = true;
     this.walkingstates.set(isWalking, performance.now(), "up", "walk-up", this);
   };
   downArrow = () => {
+    this.isDownArrowDown = true;
     this.walkingstates.set(isWalking, performance.now(), "down", "walk-down", this);
   };
-  releasedKey = () => {
-    this.walkingstates.set(isIdle, performance.now(), this.direction, `idle-${this.direction}`, this);
+  releasedKey = (key: string) => {
+    switch (key) {
+      case "upA":
+        this.isUpArrowDown = false;
+        break;
+      case "downA":
+        this.isDownArrowDown = false;
+        break;
+      case "leftA":
+        this.isLeftArrowDown = false;
+        break;
+      case "rightA":
+        this.isRightArrowDown = false;
+        break;
+    }
+    if (!this.isRightArrowDown && !this.isLeftArrowDown && !this.isDownArrowDown && !this.isUpArrowDown)
+      this.walkingstates.set(isIdle, performance.now(), this.direction, `idle-${this.direction}`, this);
   };
   interact = () => {
     this.isCheckForInteractions = true;
