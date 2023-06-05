@@ -1,8 +1,9 @@
 import { GameObject, GameObjectConfig } from "../../src/components/GameObject";
 import { Sprite } from "../../src/components/Sprite";
+import { StoryFlagManager } from "../../src/components/StoryFlagManager";
 
 export class Counter extends GameObject {
-  constructor(assets: any) {
+  constructor(assets: any, StoryFlags: StoryFlagManager) {
     let config: GameObjectConfig = {
       name: "Counter",
       startingMap: "kitchen",
@@ -20,6 +21,7 @@ export class Counter extends GameObject {
       },
     };
     super(config);
+    this.SM = StoryFlags;
   }
 
   update(): boolean {

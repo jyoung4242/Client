@@ -3,6 +3,23 @@ import { Camera, ShakeDirection } from "./Camera";
 import { GameObjectConfig, GameObject } from "./GameObject";
 import { MapConfig, GameMap, MapLayer } from "./MapManager";
 import { EventManager, GameEvent } from "./EventManager";
+import { StoryFlagManager } from "./StoryFlagManager";
+
+export type RendererConfig = {
+  state: typeof RenderState;
+  objectRenderOrder: number;
+  viewportDims: { width: number; aspectratio: number };
+  storyFlags?: StoryFlagManager;
+  renderingFPS: number;
+  physicsFPS: number;
+};
+
+/*
+ state: typeof RenderState,
+    objectRenderOrder: number,
+    storyFlags: any,
+    viweportsize: { width: number; aspectratio: number }
+*/
 
 export type renderType = Array<MapLayer | GameObject>;
 export const RenderState = {
@@ -34,7 +51,7 @@ export const RenderState = {
     isTriggersVisible: false,
   },
   renderedObjects: <renderType>[],
-  storyFlags: {},
+  storyFlags: <StoryFlagManager | undefined>undefined,
 };
 
 //this will control Camera, Maps, and gameObjects
@@ -100,8 +117,8 @@ export class GameRenderer {
           height:100%;
           z-index: 999999;
         }
-       
         </style>
+        
         <camera-static style="transform: translate(\${renderState.camera.xPos}px,\${renderState.camera.yPos}px); width: \${renderState.camera.cWidth}px; height:\${renderState.camera.cHeight}px; ">
             <camera-layer style="width: 100%; height: 100%;display: block;">
                 <camera-flash class="camera-flash" \${===renderState.camera.isFlashEnabled}></camera-flash>
@@ -119,26 +136,29 @@ export class GameRenderer {
         </camera-static>
     `;
 
-  static initialize(
-    state: typeof RenderState,
-    objectRenderOrder: number,
-    storyFlags: any,
-    viweportsize: { width: number; aspectratio: number }
-  ) {
+  static initialize(config: RendererConfig) {
     /*********************
      * state Initialization
      *********************  */
-    GameRenderer.state = state;
-    GameRenderer.state.viewport.width = viweportsize.width;
-    GameRenderer.state.viewport.height = viweportsize.width * (1 / viweportsize.aspectratio);
-    Object.assign(GameRenderer.state.storyFlags, storyFlags);
-    GameRenderer.objectRenderOrder = objectRenderOrder;
+    GameRenderer.state = config.state;
+    GameRenderer.state.viewport.width = config.viewportDims.width;
+    GameRenderer.state.viewport.height = config.viewportDims.width * (1 / config.viewportDims.aspectratio);
+    if (config.storyFlags) GameRenderer.state.storyFlags = config.storyFlags;
+    GameRenderer.objectRenderOrder = config.objectRenderOrder;
 
     /*********************
      * Engine Initialization
      *********************  */
-    GameRenderer.physicsEngine = Engine.create({ callback: GameRenderer.physicsLoop, fps: 30, started: false });
-    GameRenderer.renderEngine = Engine.create({ callback: GameRenderer.renderLoop, fps: 60, started: false });
+    GameRenderer.physicsEngine = Engine.create({
+      callback: GameRenderer.physicsLoop,
+      fps: config.physicsFPS,
+      started: false,
+    });
+    GameRenderer.renderEngine = Engine.create({
+      callback: GameRenderer.renderLoop,
+      fps: config.renderingFPS,
+      started: false,
+    });
 
     /*********************
      * Camera Initialization

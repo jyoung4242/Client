@@ -15,7 +15,7 @@ export class LogEvent extends GameEvent {
   init(who: GameObject): Promise<void> {
     return new Promise(resolve => {
       this.who = who;
-      console.log(`${this.who.name} says: ${this.message}`);
+      console.log(`${this.who.name} logged: ${this.message}`);
       resolve();
     });
   }

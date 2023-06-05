@@ -8,10 +8,14 @@ import { CollisionManager, direction } from "../../src/components/CollisionManag
 import { GameMap } from "../../src/components/MapManager";
 import { State, States } from "@peasy-lib/peasy-states";
 import { LogEvent } from "../Events/log";
+import { StoryFlagManager } from "../../src/components/StoryFlagManager";
+import { DialogEvent } from "../Events/dialogue";
+import { testConversation } from "../Dialogue/testConversation";
 
 const NPC_WALKSPEED = 1;
 
 export class NPC1 extends GameObject {
+  dm;
   isCutscenePlaying = false;
   isStanding = false;
   collisions = new CollisionManager();
@@ -34,7 +38,7 @@ export class NPC1 extends GameObject {
   };
   walkingstates = new WalkingStates();
 
-  constructor(assets: any) {
+  constructor(assets: any, StoryFlags: StoryFlagManager, dm: any) {
     let npcSpritesheet = new Spritesheet(assets.image("npc2").src, 16, 4, 4, 32, 32);
     npcSpritesheet.initialize();
 
@@ -55,17 +59,57 @@ export class NPC1 extends GameObject {
       },
     };
     super(config);
-
+    this.SM = StoryFlags;
+    this.dm = dm;
     this.interactionEvents = [
       {
         conditions: {
-          someCondition: true,
+          threat: false,
+          meek: false,
+          deaf: false,
+          angry: false,
         },
-        content: [new LogEvent("story flag met")],
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
+      },
+      {
+        conditions: {
+          threat: true,
+          meek: false,
+          deaf: false,
+          angry: false,
+        },
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
+      },
+      {
+        conditions: {
+          threat: true,
+          meek: true,
+          deaf: false,
+          angry: false,
+        },
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
+      },
+      {
+        conditions: {
+          threat: true,
+          meek: false,
+          deaf: true,
+          angry: false,
+        },
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
+      },
+      {
+        conditions: {
+          threat: true,
+          meek: false,
+          deaf: false,
+          angry: true,
+        },
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
       },
       {
         conditions: "default",
-        content: [new LogEvent("no story flag conditions")],
+        content: [new DialogEvent(new testConversation(this), this.dm, this.SM.StoryFlags)],
       },
     ];
     this.behaviorLoop = new EventManager(this, "LOOP");
@@ -141,11 +185,13 @@ export class NPC1 extends GameObject {
   update(deltaTime: number, objects: GameObject[], currentMap: GameMap): boolean {
     return true;
   }
+
   physicsUpdate = (deltaTime: number, objects: GameObject[], currentMap: GameMap): boolean => {
     //check for object/object collisions
     //filter playable characters out
 
     if (!currentMap) return true;
+    if (this.isCutscenePlaying) return true;
     if (currentMap.name != this.currentMap) return true;
     let otherObjects = objects.filter(oo => this.id != oo.id);
     this.collisionDirections = [];

@@ -200,7 +200,6 @@ export class CollisionManager {
     //find x,y location of centerpoint of collisionbody
     const cbCenterPointX = who.xPos + who.collisionLayers[0].x + who.collisionLayers[0].w / 2;
     const cbCenterPointY = who.yPos + who.collisionLayers[0].y + who.collisionLayers[0].h / 2;
-    //console.log("finding centerpoint of current body: ", cbCenterPointX, cbCenterPointY);
 
     let RCpointX: number, RCpointY: number;
     switch (direction) {
@@ -221,14 +220,11 @@ export class CollisionManager {
         RCpointY = cbCenterPointY;
         break;
     }
-    //console.log("detection point", RCpointX, RCpointY);
 
     // take point and see if it falls inside any object collision box that is on same map
     const mappedObjects = objects.filter(obj => {
       return obj.currentMap == currentMap.name && obj.name != who.name;
     });
-
-    //console.log("mapped objects", mappedObjects);
 
     const foundObject = mappedObjects.find(mo => {
       return lineObjectCollision({ x1: cbCenterPointX, y1: cbCenterPointY, x2: RCpointX, y2: RCpointY }, mo);
@@ -236,8 +232,9 @@ export class CollisionManager {
 
     // if object found, return the interaction object
     if (foundObject) {
-      //console.log("found cb: ", foundObject);
-
+      if ("isCutscenePlaying" in foundObject) {
+        foundObject.isCutscenePlaying = true;
+      }
       return foundObject.interactionEvents;
     }
 

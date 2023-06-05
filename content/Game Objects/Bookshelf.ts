@@ -1,8 +1,13 @@
 import { GameObject, GameObjectConfig } from "../../src/components/GameObject";
 import { Sprite } from "../../src/components/Sprite";
+import { StoryFlagManager } from "../../src/components/StoryFlagManager";
+import { DialogManager } from "../PlugIns/DialogueManager";
+import { bookcasePopup } from "../Dialogue/bookcasepopup";
+import { DialogEvent } from "../Events/dialogue";
 
 export class Bookshelf extends GameObject {
-  constructor(assets: any) {
+  dm;
+  constructor(assets: any, StoryFlags: StoryFlagManager, dm: DialogManager) {
     let config: GameObjectConfig = {
       name: "Bookshelf",
       startingMap: "kitchen",
@@ -20,6 +25,12 @@ export class Bookshelf extends GameObject {
       },
     };
     super(config);
+    this.dm = dm;
+    this.SM = StoryFlags;
+    this.interactionEvents = [
+      { conditions: { metBookcase: false }, content: [new DialogEvent(new bookcasePopup(this), this.dm, this.SM)] },
+      { conditions: { metBookcase: true }, content: [new DialogEvent(new bookcasePopup(this), this.dm, this.SM)] },
+    ];
   }
 
   update(): boolean {

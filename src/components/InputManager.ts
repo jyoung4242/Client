@@ -78,7 +78,14 @@ export class InputManager {
 
     Object.keys(InputManager.keys).forEach(k => {
       // @ts-ignore
-      if (k != "release") mapObject[k] = keyboardMap[k].name;
+      if (k != "release" && InputManager.keys[k].options.repeat == false) {
+        // @ts-ignore
+        mapObject[k] = { action: keyboardMap[k].name, repeat: false };
+      } else if (k != "release" && InputManager.keys[k].options.repeat == true) {
+        // @ts-ignore
+        mapObject[k] = { action: keyboardMap[k].name, repeat: true };
+        // @ts-ignore
+      } else if (k != "release") mapObject[k] = keyboardMap[k].name;
     });
     Input.map(mapObject, (action, doing) => {
       if (doing) {

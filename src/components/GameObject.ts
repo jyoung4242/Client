@@ -4,6 +4,7 @@ import { Sprite } from "./Sprite";
 import { direction } from "./CollisionManager";
 import { GameMap, collisionBody } from "./MapManager";
 import { GameEvent } from "./EventManager";
+import { StoryFlagManager } from "./StoryFlagManager";
 
 export type spriteLayer = Array<Sprite | Spritesheet>;
 
@@ -49,8 +50,9 @@ export class GameObject {
   isCollisionLayersVisible = false;
   currentMap = "";
   interactionEvents: Array<interaction> = [];
+  SM: StoryFlagManager | undefined;
 
-  constructor(config: GameObjectConfig) {
+  constructor(config: GameObjectConfig, StoryFlags?: StoryFlagManager) {
     this.name = config.name;
     this.id = uuidv4();
     this.zIndex = 2;
@@ -69,6 +71,7 @@ export class GameObject {
         color: config.collisionBody.color,
       });
     }
+    if (StoryFlags) this.SM = StoryFlags;
   }
 
   static create(config: GameObjectConfig) {

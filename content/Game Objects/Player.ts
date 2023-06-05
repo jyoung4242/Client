@@ -5,12 +5,15 @@ import { Spritesheet, AnimationSequence } from "../../src/components/Spritesheet
 import { State, States } from "@peasy-lib/peasy-states";
 import { CollisionManager, direction } from "../../src/components/CollisionManager";
 import { GameMap } from "../../src/components/MapManager";
-import { EventManager, GameEvent } from "../../src/components/EventManager";
+import { EventManager } from "../../src/components/EventManager";
+import { StoryFlagManager } from "../../src/components/StoryFlagManager";
+import { DialogManager } from "../PlugIns/DialogueManager";
 
 const MAX_WALKING_SPEED = 1.5;
 const DETECTION_DISTANCE = 25;
 
 export class Player extends GameObject {
+  dm;
   collisionbodyoffsetX = 0;
   collisions = new CollisionManager();
   cutscenes;
@@ -31,7 +34,7 @@ export class Player extends GameObject {
     "idle-right": [4],
   };
 
-  constructor(assets: any) {
+  constructor(assets: any, StoryFlags: StoryFlagManager, dm: DialogManager) {
     let heroSpritesheet = new Spritesheet(assets.image("hero").src, 16, 4, 4, 32, 32);
     heroSpritesheet.initialize();
 
@@ -52,12 +55,14 @@ export class Player extends GameObject {
       },
     };
     super(config);
+    this.dm = dm;
     this.cutscenes = new EventManager(this, "CUTSCENE");
     this.isPlayable = true;
     this.animationHandler = new AnimationSequence(heroSpritesheet, this.animationUpdate, this.demosequence, 150);
     this.animationHandler.changeSequence("idle-down");
     this.walkingstates.register(isWalking, isIdle);
     this.walkingstates.set(isIdle, performance.now(), "down", "idle-down", this);
+    this.SM = StoryFlags;
 
     /***********************************
      * using the Input Manager, sets up
@@ -96,6 +101,13 @@ export class Player extends GameObject {
         " ": {
           name: "space",
           callback: this.interact,
+          options: {
+            repeat: false,
+          },
+        },
+        Enter: {
+          name: "enter",
+          callback: this.speedUpText,
           options: {
             repeat: false,
           },
@@ -189,6 +201,7 @@ export class Player extends GameObject {
      * check is needed
      * ******************************* */
     if (this.isCheckForInteractions) {
+      this.isCheckForInteractions = false;
       const objectInteractions: Array<interaction> | undefined = this.collisions.detectingInteractions(
         this,
         this.direction,
@@ -198,24 +211,13 @@ export class Player extends GameObject {
       );
       if (objectInteractions) {
         //loop through interactions
+
         let myContent;
         for (const [key, entry] of Object.entries(objectInteractions)) {
           const conditions = Object.entries(entry.conditions);
-
-          if (entry.conditions == "default") {
+          if (storyFlags.checkConditions(entry.conditions)) {
             myContent = entry.content;
             break;
-          } else if (conditions.length) {
-            let test_cntr = 0;
-            conditions.forEach((cond: any) => {
-              if (storyFlags[cond[0]] == cond[1]) {
-                test_cntr++;
-              }
-            });
-            if (test_cntr == conditions.length) myContent = entry.content;
-            break;
-          } else {
-            myContent = entry.content;
           }
         }
         if (myContent) {
@@ -223,7 +225,6 @@ export class Player extends GameObject {
           this.cutscenes.start();
         }
       }
-      this.isCheckForInteractions = false;
     }
 
     /***********************************
@@ -270,6 +271,9 @@ export class Player extends GameObject {
   };
   interact = () => {
     this.isCheckForInteractions = true;
+  };
+  speedUpText = () => {
+    this.dm.speedup();
   };
 
   /***********************************

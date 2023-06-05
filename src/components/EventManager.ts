@@ -5,6 +5,7 @@ export type EventConfigType = "LOOP" | "CUTSCENE";
 
 export class EventManager {
   who: GameObject;
+
   isCutscenePlaying: boolean = false;
   isCallBusy: boolean = false;
   eventEngine: Engine | undefined;
@@ -54,8 +55,6 @@ export class EventManager {
     if (this.isCutscenePlaying) return;
     if (this.sequence.length == 0) return;
     this.isCallBusy = true;
-    if (this.who.name == "player") console.log("player event");
-
     await this.sequence[this.loopIndex].init(this.who);
     this.isCallBusy = false;
     this.loopIndex++;
