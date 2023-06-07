@@ -11,6 +11,7 @@ import { LogEvent } from "../Events/log";
 import { StoryFlagManager } from "../../src/components/StoryFlagManager";
 import { DialogEvent } from "../Events/dialogue";
 import { testConversation } from "../Dialogue/testConversation";
+import { npcChangeMap } from "../Events/npcChangeMap";
 
 const NPC_WALKSPEED = 1;
 
@@ -120,22 +121,12 @@ export class NPC1 extends GameObject {
 
     this.direction = "down";
     this.behaviorLoop.loadSequence([
-      new WalkEvent("down", 25),
-      new StandEvent("left", 750),
-      new StandEvent("down", 750),
-      new StandEvent("right", 750),
-      new WalkEvent("left", 25),
-      new StandEvent("right", 750),
-      new StandEvent("down", 750),
-      new StandEvent("left", 750),
-      new WalkEvent("up", 25),
-      new StandEvent("right", 750),
-      new StandEvent("down", 750),
-      new StandEvent("left", 750),
-      new WalkEvent("right", 25),
-      new StandEvent("left", 750),
-      new StandEvent("down", 750),
-      new StandEvent("right", 750),
+      new WalkEvent("down", 60),
+      new npcChangeMap("outside", 105, 75),
+      new WalkEvent("down", 10),
+      new WalkEvent("up", 10),
+      new npcChangeMap("kitchen", 70, 150),
+      new WalkEvent("up", 60),
     ]);
     this.behaviorLoop.start();
   }
@@ -192,7 +183,7 @@ export class NPC1 extends GameObject {
 
     if (!currentMap) return true;
     if (this.isCutscenePlaying) return true;
-    if (currentMap.name != this.currentMap) return true;
+    //if (currentMap.name != this.currentMap) return true;
     let otherObjects = objects.filter(oo => this.id != oo.id);
     this.collisionDirections = [];
 

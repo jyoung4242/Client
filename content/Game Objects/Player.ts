@@ -45,8 +45,8 @@ export class Player extends GameObject {
     let config: GameObjectConfig = {
       name: "Player",
       startingMap: "kitchen",
-      initX: 32,
-      initY: 78,
+      initX: 30,
+      initY: 65,
       width: 32,
       height: 32,
       sprites: [new Sprite(assets.image("shadow").src), heroSpritesheet],

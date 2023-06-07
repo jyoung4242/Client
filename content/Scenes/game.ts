@@ -9,6 +9,8 @@ import { NPC1 } from "../Game Objects/npc1";
 import { OutsideMap } from "../Maps/outside";
 import { StoryFlagManager } from "../../src/components/StoryFlagManager";
 import { DialogManager } from "../PlugIns/DialogueManager";
+import { Planter } from "../Game Objects/planter";
+import { PizzaThingy } from "../Game Objects/pizzathingy";
 
 export class Game extends Scene {
   renderer = GameRenderer;
@@ -50,7 +52,9 @@ export class Game extends Scene {
       "bookshelf.png",
       "npc2.png",
       "outsideUpper.png",
-      "outsideLower.png",
+      "outsidemod.png",
+      "planter.png",
+      "pizzazone.png",
     ]);
 
     //Initialize Renderer
@@ -74,6 +78,8 @@ export class Game extends Scene {
       new Counter(Assets, this.sm),
       new Bookshelf(Assets, this.sm, this.dm),
       new NPC1(Assets, this.sm, this.dm),
+      new Planter(Assets, this.sm),
+      new PizzaThingy(Assets, this.sm),
     ];
     this.renderer.createObject(objConfig);
 

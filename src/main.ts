@@ -17,4 +17,4 @@ const viewport = Viewport;
 viewport.initialize(datamodel, scenes, 400, "3.125/1.75");
 const template = `${viewport.template}`;
 await UI.create(document.body, datamodel, template).attached;
-viewport.setScene(3);
+viewport.setScene(0);
